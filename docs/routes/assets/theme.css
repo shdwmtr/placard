@@ -177,6 +177,10 @@ pre code {
     height: 100%;
 }
 
+:root[data-theme="light"] .brand .mark img {
+    filter: invert(1);
+}
+
 .topbar-actions .theme-toggle {
     height: 30px;
     width: 30px;
