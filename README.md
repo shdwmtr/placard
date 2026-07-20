@@ -1,5 +1,5 @@
 <h1 align="left">
-  <img src="docs/routes/favicon.svg" width="30" height="30" alt="" />
+  <img src="www/routes/favicon.svg" width="30" height="30" alt="" />
   &nbsp;
   Placard
 </h1>
