@@ -70,7 +70,7 @@ strong {
 /* Hero */
 header.hero {
     border-bottom: 1px solid var(--border);
-    background-image: radial-gradient(var(--border-soft) 1px, transparent 1px);
+    background-image: radial-gradient(#3a3a3a 1px, transparent 1px);
     background-size: 24px 24px;
 }
 header.hero .hero-header {

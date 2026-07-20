@@ -326,7 +326,7 @@ body {
 }
 
 .preview-pane {
-    background-image: radial-gradient(var(--border-soft) 1px, transparent 1px);
+    background-image: radial-gradient(#3a3a3a 1px, transparent 1px);
     background-size: 20px 20px;
 }
 
