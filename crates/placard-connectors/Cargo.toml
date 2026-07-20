@@ -1,0 +1,10 @@
+[package]
+name = "placard-connectors"
+version = "0.1.0"
+edition = "2024"
+description = "Live data source presets (GitHub, npm, crates.io, and more) that resolve into placard HTML at render time"
+license = "Apache-2.0"
+repository = "https://github.com/shdwmtr/placard"
+
+[dependencies]
+placard-html = { path = "../placard-html", version = "0.1.0" }

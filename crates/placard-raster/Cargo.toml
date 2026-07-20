@@ -1,0 +1,12 @@
+[package]
+name = "placard-raster"
+version = "0.1.0"
+edition = "2024"
+description = "A dependency-free 2D canvas, path filler, and PNG/WebP encoder for placard"
+license = "Apache-2.0"
+repository = "https://github.com/shdwmtr/placard"
+
+[dependencies]
+
+[dev-dependencies]
+placard-font = { path = "../placard-font", version = "0.1.0" }

@@ -1,0 +1,168 @@
+@font-face {
+    font-family: "Geist Sans";
+    src: url("/assets/geist-sans.woff2") format("woff2");
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Geist Mono";
+    src: url("/assets/geist-mono.woff2") format("woff2");
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+:root {
+    --bg: #000000;
+    --border: #262626;
+    --border-soft: #1a1a1a;
+    --text: #ededed;
+    --text-secondary: #a1a1a1;
+    --text-tertiary: #757575;
+    --link: #3b82f6;
+    --code-bg: #0a0a0a;
+    --font-sans:
+        "Geist Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica,
+        Arial, sans-serif;
+    --font-mono: "Geist Mono", ui-monospace, "JetBrains Mono", monospace;
+    --tok-tag: #e06c75;
+    --tok-attr: #d19a66;
+    --tok-string: #98c379;
+    --tok-punct: #6e7681;
+    --tok-text: var(--text);
+}
+
+.tok-tag {
+    color: var(--tok-tag);
+}
+
+.tok-attr {
+    color: var(--tok-attr);
+}
+
+.tok-string {
+    color: var(--tok-string);
+}
+
+.tok-punct {
+    color: var(--tok-punct);
+}
+
+.tok-text {
+    color: var(--tok-text);
+}
+
+.tok-comment {
+    color: var(--text-tertiary);
+    font-style: italic;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+    line-height: 1.7;
+}
+
+a {
+    color: var(--link);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 28px 0;
+}
+
+pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    /*border-radius: 6px;*/
+    padding: 14px 16px;
+    overflow-x: auto;
+    font-size: 12.5px;
+    color: var(--text-secondary);
+}
+
+code {
+    font-family: var(--font-mono);
+    background: var(--code-bg);
+    border: 1px solid var(--border-soft);
+    border-radius: 4px;
+    padding: 0.15em 0.4em;
+    font-size: 0.9em;
+    color: var(--text);
+}
+
+pre code {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 1em;
+    color: inherit;
+}
+
+.topbar {
+    height: 56px;
+    border-bottom: 1px solid var(--border);
+    flex: 0 0 auto;
+}
+
+.topbar-inner {
+    max-width: 1440px;
+    width: 100%;
+    height: 100%;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 0 20px;
+    box-sizing: border-box;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.brand a {
+    display: flex;
+    align-items: center;
+    color: var(--text);
+}
+
+.brand .sep {
+    margin: 0 8px;
+    color: var(--text-tertiary);
+    font-weight: 400;
+}
+
+.brand .mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+}
+
+.brand .mark img {
+    width: 100%;
+    height: 100%;
+}

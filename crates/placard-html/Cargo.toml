@@ -1,0 +1,9 @@
+[package]
+name = "placard-html"
+version = "0.1.0"
+edition = "2024"
+description = "A hand-written HTML tokenizer and DOM builder for placard's small HTML subset"
+license = "Apache-2.0"
+repository = "https://github.com/shdwmtr/placard"
+
+[dependencies]

@@ -1,0 +1,17 @@
+[package]
+name = "placard-paint"
+version = "0.1.0"
+edition = "2024"
+description = "Rasterizes placard's layout tree onto a canvas, including text shaping and glyph fills"
+license = "Apache-2.0"
+repository = "https://github.com/shdwmtr/placard"
+
+[dependencies]
+placard-layout = { path = "../placard-layout", version = "0.1.0" }
+placard-raster = { path = "../placard-raster", version = "0.1.0" }
+placard-font = { path = "../placard-font", version = "0.1.0" }
+
+[dev-dependencies]
+placard-html = { path = "../placard-html", version = "0.1.0" }
+placard-css = { path = "../placard-css", version = "0.1.0" }
+placard-style = { path = "../placard-style", version = "0.1.0" }

@@ -1,0 +1,9 @@
+[package]
+name = "placard-css"
+version = "0.1.0"
+edition = "2024"
+description = "A hand-written CSS tokenizer and parser for placard's small CSS subset"
+license = "Apache-2.0"
+repository = "https://github.com/shdwmtr/placard"
+
+[dependencies]

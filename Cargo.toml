@@ -1,0 +1,19 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/placard-cli",
+    "crates/placard-raster",
+    "crates/placard-font",
+    "crates/placard-html",
+    "crates/placard-css",
+    "crates/placard-style",
+    "crates/placard-layout",
+    "crates/placard-paint",
+    "crates/placard-render",
+    "crates/placard-connectors",
+]
+
+[profile.release]
+strip = true
+lto = true
+codegen-units = 1

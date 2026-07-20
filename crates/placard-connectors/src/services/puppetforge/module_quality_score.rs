@@ -1,0 +1,96 @@
+use super::super::validate_path_param;
+use crate::Fetcher;
+use crate::json::{self, Value};
+use std::collections::HashMap;
+
+pub(crate) fn resolve_module_quality_score(
+    params: &HashMap<String, String>,
+    fetcher: &dyn Fetcher,
+) -> Result<String, String> {
+    let user = params
+        .get("user")
+        .ok_or("puppetforge-module-quality-score requires a data-user attribute")?;
+    let module_name = params
+        .get("module-name")
+        .ok_or("puppetforge-module-quality-score requires a data-module-name attribute")?;
+    let user = validate_path_param("user", user)?;
+    let module_name = validate_path_param("module-name", module_name)?;
+
+    let url = format!("https://forgeapi.puppetlabs.com/private/validations/{user}-{module_name}");
+    let bytes = fetcher.fetch(&url)?;
+    let text = String::from_utf8(bytes)
+        .map_err(|_| "puppetforge response was not valid UTF-8".to_string())?;
+    let value = json::parse(&text)?;
+    let Value::Array(items) = value else {
+        return Err("puppetforge response was not a JSON array".to_string());
+    };
+    let total = items
+        .iter()
+        .find(|item| item.get("name").and_then(Value::as_text).as_deref() == Some("total"))
+        .ok_or("puppetforge response had no total entry")?;
+    let score = match total.get("score") {
+        Some(Value::Number(n)) => *n as i64,
+        _ => return Err("puppetforge response total entry missing score".to_string()),
+    };
+    Ok(format!("{score}%"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    struct FakeFetcher(&'static str);
+    impl Fetcher for FakeFetcher {
+        fn fetch(&self, url: &str) -> Result<Vec<u8>, String> {
+            assert_eq!(
+                url,
+                "https://forgeapi.puppetlabs.com/private/validations/camptocamp-openssl"
+            );
+            Ok(self.0.as_bytes().to_vec())
+        }
+    }
+
+    fn params(user: &str, module_name: &str) -> HashMap<String, String> {
+        HashMap::from([
+            ("user".to_string(), user.to_string()),
+            ("module-name".to_string(), module_name.to_string()),
+        ])
+    }
+
+    #[test]
+    fn extracts_the_total_score_from_the_validation_array() {
+        let fetcher = FakeFetcher(r#"[{"name": "puppet-lint"}, {"name": "total", "score": 92}]"#);
+        let value =
+            resolve_module_quality_score(&params("camptocamp", "openssl"), &fetcher).unwrap();
+        assert_eq!(value, "92%");
+    }
+
+    #[test]
+    fn requires_user_and_module_name_params() {
+        struct Unused;
+        impl Fetcher for Unused {
+            fn fetch(&self, _url: &str) -> Result<Vec<u8>, String> {
+                unreachable!("should never fetch without valid params")
+            }
+        }
+        assert!(resolve_module_quality_score(&HashMap::new(), &Unused).is_err());
+        assert!(resolve_module_quality_score(&params("camptocamp", ""), &Unused).is_err());
+    }
+
+    #[test]
+    fn rejects_path_breaking_params_before_fetching() {
+        struct Unused;
+        impl Fetcher for Unused {
+            fn fetch(&self, _url: &str) -> Result<Vec<u8>, String> {
+                unreachable!("should never fetch with an invalid param")
+            }
+        }
+        assert!(resolve_module_quality_score(&params("../etc", "openssl"), &Unused).is_err());
+    }
+
+    #[test]
+    fn errors_when_no_total_entry_is_present() {
+        let fetcher = FakeFetcher(r#"[{"name": "puppet-lint"}]"#);
+        assert!(resolve_module_quality_score(&params("camptocamp", "openssl"), &fetcher).is_err());
+    }
+}

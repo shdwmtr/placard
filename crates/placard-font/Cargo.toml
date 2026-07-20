@@ -1,0 +1,9 @@
+[package]
+name = "placard-font"
+version = "0.1.0"
+edition = "2024"
+description = "A dependency-free TrueType/OpenType font parser and glyph outline reader for placard"
+license = "Apache-2.0"
+repository = "https://github.com/shdwmtr/placard"
+
+[dependencies]

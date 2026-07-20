@@ -1,0 +1,17 @@
+[package]
+name = "placard-render"
+version = "0.1.0"
+edition = "2024"
+description = "Top-level render pipeline that turns an HTML+CSS document into a PNG or WebP image"
+license = "Apache-2.0"
+repository = "https://github.com/shdwmtr/placard"
+
+[dependencies]
+placard-html = { path = "../placard-html", version = "0.1.0" }
+placard-css = { path = "../placard-css", version = "0.1.0" }
+placard-style = { path = "../placard-style", version = "0.1.0" }
+placard-layout = { path = "../placard-layout", version = "0.1.0" }
+placard-paint = { path = "../placard-paint", version = "0.1.0" }
+placard-raster = { path = "../placard-raster", version = "0.1.0" }
+placard-font = { path = "../placard-font", version = "0.1.0" }
+placard-connectors = { path = "../placard-connectors", version = "0.1.0" }

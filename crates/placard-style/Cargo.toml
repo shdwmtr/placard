@@ -1,0 +1,11 @@
+[package]
+name = "placard-style"
+version = "0.1.0"
+edition = "2024"
+description = "Selector matching and cascade resolution that turns placard-css rules into computed styles"
+license = "Apache-2.0"
+repository = "https://github.com/shdwmtr/placard"
+
+[dependencies]
+placard-html = { path = "../placard-html", version = "0.1.0" }
+placard-css = { path = "../placard-css", version = "0.1.0" }

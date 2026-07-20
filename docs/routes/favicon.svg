@@ -1,0 +1,43 @@
+<svg
+    width="200"
+    height="200"
+    viewBox="190 50 300 300"
+    xmlns="http://www.w3.org/2000/svg"
+    role="img"
+>
+<defs>
+<clipPath id="circleClip"><circle cx="340" cy="200" r="150" /></clipPath>
+</defs>
+<g clip-path="url(#circleClip)">
+<path
+            fill-rule="evenodd"
+            fill="white"
+            d="
+M0,0 H680 V420 H0 Z
+M250,130 h180 a12,12 0 0 1 12,12 v112 a12,12 0 0 1 -12,12 h-180 a12,12 0 0 1 -12,-12 v-112 a12,12 0 0 1 12,-12 Z
+M320,266 h40 v154 h-40 Z
+"
+        />
+<path
+            fill="none"
+            stroke="white"
+            stroke-width="8"
+            stroke-linecap="round"
+            d="M277,158 q9,-9 18,0 q9,9 18,0 q9,-9 18,0 q9,9 18,0 q9,-9 18,0 q9,9 18,0 q9,-9 18,0"
+        />
+<path
+            fill="none"
+            stroke="white"
+            stroke-width="8"
+            stroke-linecap="round"
+            d="M277,196 q9,-9 18,0 q9,9 18,0 q9,-9 18,0 q9,9 18,0 q9,-9 18,0 q9,9 18,0 q9,-9 18,0"
+        />
+<path
+            fill="none"
+            stroke="white"
+            stroke-width="8"
+            stroke-linecap="round"
+            d="M277,234 q9,-9 18,0 q9,9 18,0 q9,-9 18,0 q9,9 18,0 q9,-9 18,0 q9,9 18,0 q9,-9 18,0"
+        />
+</g>
+</svg>

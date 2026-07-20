@@ -1,0 +1,111 @@
+use super::validate_path_param;
+use crate::Fetcher;
+use crate::json;
+use std::collections::HashMap;
+
+fn validate_clojar(value: &str) -> Result<&str, String> {
+    if value.is_empty() {
+        return Err("'clojar' parameter must not be empty".to_string());
+    }
+    for segment in value.split('/') {
+        if segment == "." || segment == ".." {
+            return Err("'clojar' parameter contains disallowed characters".to_string());
+        }
+        validate_path_param("clojar", segment)?;
+    }
+    Ok(value)
+}
+
+pub(crate) fn resolve_downloads(
+    params: &HashMap<String, String>,
+    fetcher: &dyn Fetcher,
+) -> Result<String, String> {
+    let clojar = params
+        .get("clojar")
+        .ok_or("clojars-downloads requires a data-clojar attribute")?;
+    let clojar = validate_clojar(clojar)?;
+
+    let url = format!("https://clojars.org/api/artifacts/{clojar}");
+    let bytes = fetcher.fetch(&url)?;
+    let text =
+        String::from_utf8(bytes).map_err(|_| "clojars response was not valid UTF-8".to_string())?;
+    let value = json::parse(&text)?;
+    let downloads = value
+        .get("downloads")
+        .ok_or("clojars response missing downloads")?;
+    downloads
+        .as_text()
+        .ok_or_else(|| "downloads was not a plain value".to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    struct FakeFetcher {
+        expected_url: &'static str,
+        body: &'static str,
+    }
+    impl Fetcher for FakeFetcher {
+        fn fetch(&self, url: &str) -> Result<Vec<u8>, String> {
+            assert_eq!(url, self.expected_url);
+            Ok(self.body.as_bytes().to_vec())
+        }
+    }
+
+    fn params(clojar: &str) -> HashMap<String, String> {
+        HashMap::from([("clojar".to_string(), clojar.to_string())])
+    }
+
+    #[test]
+    fn extracts_the_download_count() {
+        let fetcher = FakeFetcher {
+            expected_url: "https://clojars.org/api/artifacts/prismic",
+            body: r#"{"downloads": 4213, "latest_release": "7.0.0", "latest_version": "7.0.0"}"#,
+        };
+        let value = resolve_downloads(&params("prismic"), &fetcher).unwrap();
+        assert_eq!(value, "4213");
+    }
+
+    #[test]
+    fn supports_group_slash_artifact_clojars() {
+        let fetcher = FakeFetcher {
+            expected_url: "https://clojars.org/api/artifacts/ring/ring-core",
+            body: r#"{"downloads": 100, "latest_release": "1.0.0", "latest_version": "1.0.0"}"#,
+        };
+        let value = resolve_downloads(&params("ring/ring-core"), &fetcher).unwrap();
+        assert_eq!(value, "100");
+    }
+
+    #[test]
+    fn requires_clojar_param() {
+        struct Unused;
+        impl Fetcher for Unused {
+            fn fetch(&self, _url: &str) -> Result<Vec<u8>, String> {
+                unreachable!("should never fetch without a valid clojar")
+            }
+        }
+        assert!(resolve_downloads(&HashMap::new(), &Unused).is_err());
+        assert!(resolve_downloads(&params(""), &Unused).is_err());
+    }
+
+    #[test]
+    fn rejects_path_breaking_params_before_fetching() {
+        struct Unused;
+        impl Fetcher for Unused {
+            fn fetch(&self, _url: &str) -> Result<Vec<u8>, String> {
+                unreachable!("should never fetch with an invalid clojar")
+            }
+        }
+        assert!(resolve_downloads(&params("../etc/passwd"), &Unused).is_err());
+    }
+
+    #[test]
+    fn errors_when_the_field_is_missing() {
+        let fetcher = FakeFetcher {
+            expected_url: "https://clojars.org/api/artifacts/prismic",
+            body: r#"{"latest_release": "7.0.0", "latest_version": "7.0.0"}"#,
+        };
+        assert!(resolve_downloads(&params("prismic"), &fetcher).is_err());
+    }
+}

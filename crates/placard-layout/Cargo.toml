@@ -1,0 +1,15 @@
+[package]
+name = "placard-layout"
+version = "0.1.0"
+edition = "2024"
+description = "Block and inline box layout for placard's computed styles"
+license = "Apache-2.0"
+repository = "https://github.com/shdwmtr/placard"
+
+[dependencies]
+placard-style = { path = "../placard-style", version = "0.1.0" }
+placard-font = { path = "../placard-font", version = "0.1.0" }
+placard-html = { path = "../placard-html", version = "0.1.0" }
+
+[dev-dependencies]
+placard-css = { path = "../placard-css", version = "0.1.0" }
