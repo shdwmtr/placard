@@ -10,9 +10,10 @@ fn main() {
         std::fs::read("/usr/share/fonts/liberation/LiberationSans-Regular.ttf").unwrap();
     let fonts = FontSet::new(Font::parse(&font_data).unwrap());
 
-    let canvas = placard_render::render_to_canvas(&html, Some(width), None, &fonts, None, None)
-        .unwrap()
-        .canvas;
+    let canvas =
+        placard_render::render_to_canvas(&html, Some(width), None, None, &fonts, None, None)
+            .unwrap()
+            .canvas;
     let png_bytes = placard_raster::png::encode(&canvas);
     let webp_bytes = placard_raster::webp::encode(&canvas).unwrap();
 

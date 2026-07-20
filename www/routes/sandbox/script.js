@@ -7,14 +7,17 @@
     var previewStage = document.getElementById("preview-stage");
     var zoomLevelEl = document.getElementById("zoom-level");
     var zoomResetBtn = document.getElementById("zoom-reset");
-    var borderWidthInput = document.getElementById("border-width");
-    var borderWidthValueEl = document.getElementById("border-width-value");
-    var borderColorInput = document.getElementById("border-color");
-    var widthInput = document.getElementById("width");
+    var autoWidthToggle = document.getElementById("auto-width-toggle");
+    var widthValueInput = document.getElementById("width-value");
+    var widthHint = document.getElementById("width-hint");
+    var resizeHandle = document.getElementById("resize-handle");
+    var resizePreview = document.getElementById("resize-preview");
     var formatSelect = document.getElementById("format");
     var copyBtn = document.getElementById("copy-url");
     var browserFrame = document.getElementById("browser-frame");
     var browserWidthReadout = document.getElementById("browser-width-readout");
+    var browserPane = document.getElementById("browser-pane");
+    var browserToggle = document.getElementById("browser-toggle");
     var consolePanel = document.getElementById("console-panel");
     var consoleToggle = document.getElementById("console-toggle");
     var consoleBody = document.getElementById("console-body");
@@ -52,20 +55,17 @@
     }
 
     function renderUrl() {
-        var width = widthInput.value || "400";
         var format = formatSelect.value || "webp";
-        return (
-            "/r/" +
-            base64url(editor.getValue()) +
-            "." +
-            format +
-            "?width=" +
-            encodeURIComponent(width)
-        );
+        var query = "";
+        if (!autoWidthToggle.checked && widthValueInput.value) {
+            query = "?width=" + encodeURIComponent(widthValueInput.value);
+        }
+        return "/r/" + base64url(editor.getValue()) + "." + format + query;
     }
 
     var currentObjectUrl = null;
     var previewToken = 0;
+    var lastResolvedWidth = 400;
 
     function renderConsole(items) {
         consoleBody.textContent = "";
@@ -168,13 +168,16 @@
 
     function updateBrowserFrame() {
         if (!editor) return;
-        var width = widthInput.value || "400";
+        var width =
+            !autoWidthToggle.checked && widthValueInput.value
+                ? widthValueInput.value
+                : String(lastResolvedWidth);
         browserFrame.style.width = width + "px";
         browserWidthReadout.textContent = width + "px";
         browserFrame.srcdoc = editor.getValue();
     }
 
-    browserFrame.addEventListener("load", function () {
+    function updateBrowserFrameHeight() {
         try {
             var doc = browserFrame.contentDocument;
             var height = Math.max(
@@ -183,6 +186,14 @@
             );
             browserFrame.style.height = height + "px";
         } catch (e) {}
+    }
+
+    browserFrame.addEventListener("load", updateBrowserFrameHeight);
+
+    browserToggle.addEventListener("click", function () {
+        var expanding = !browserPane.classList.contains("expanded");
+        browserPane.classList.toggle("expanded");
+        if (expanding) updateBrowserFrameHeight();
     });
 
     var MIN_SCALE = 0.1;
@@ -220,6 +231,10 @@
     }
 
     previewImg.addEventListener("load", function () {
+        if (previewImg.naturalWidth) {
+            lastResolvedWidth = previewImg.naturalWidth;
+            if (autoWidthToggle.checked) updateBrowserFrame();
+        }
         if (!hasFitOnce) {
             hasFitOnce = true;
             fitToViewport();
@@ -279,15 +294,74 @@
     previewViewport.addEventListener("dblclick", fitToViewport);
     zoomResetBtn.addEventListener("click", fitToViewport);
 
-    function updateBorder() {
-        previewImg.style.borderWidth = borderWidthInput.value + "px";
-        previewImg.style.borderColor = borderColorInput.value;
-        borderWidthValueEl.textContent = borderWidthInput.value + "px";
+    var MIN_RESIZE_WIDTH = 1;
+    var MAX_RESIZE_WIDTH = 2000;
+    var isResizing = false;
+    var resizeStartX = 0;
+    var resizeStartWidth = 400;
+
+    function updateResizePreview(newWidth) {
+        var left = Math.min(resizeStartWidth, newWidth);
+        var width = Math.abs(newWidth - resizeStartWidth);
+        resizePreview.style.left = left + "px";
+        resizePreview.style.width = width + "px";
     }
 
-    borderWidthInput.addEventListener("input", updateBorder);
-    borderColorInput.addEventListener("input", updateBorder);
-    updateBorder();
+    function setAutoWidth(auto) {
+        widthValueInput.disabled = auto;
+        widthValueInput.classList.toggle("hidden", auto);
+        resizeHandle.classList.toggle("enabled", !auto);
+        widthHint.classList.toggle("visible", !auto);
+        if (auto) {
+            widthValueInput.value = "";
+        } else if (!widthValueInput.value) {
+            widthValueInput.value = lastResolvedWidth;
+        }
+    }
+
+    autoWidthToggle.addEventListener("change", function () {
+        setAutoWidth(autoWidthToggle.checked);
+        updatePreview();
+        updateBrowserFrame();
+    });
+
+    widthValueInput.addEventListener("change", function () {
+        updatePreview();
+        updateBrowserFrame();
+    });
+
+    resizeHandle.addEventListener("mousedown", function (e) {
+        if (autoWidthToggle.checked || e.button !== 0) return;
+        e.preventDefault();
+        e.stopPropagation();
+        isResizing = true;
+        resizeStartX = e.clientX;
+        resizeStartWidth = parseInt(widthValueInput.value, 10) || lastResolvedWidth;
+        resizeHandle.classList.add("dragging");
+        resizePreview.classList.add("active");
+        updateResizePreview(resizeStartWidth);
+    });
+
+    window.addEventListener("mousemove", function (e) {
+        if (!isResizing) return;
+        var dx = (e.clientX - resizeStartX) / scale;
+        var newWidth = Math.round(
+            clamp(resizeStartWidth + dx, MIN_RESIZE_WIDTH, MAX_RESIZE_WIDTH),
+        );
+        widthValueInput.value = newWidth;
+        updateResizePreview(newWidth);
+    });
+
+    window.addEventListener("mouseup", function () {
+        if (!isResizing) return;
+        isResizing = false;
+        resizeHandle.classList.remove("dragging");
+        resizePreview.classList.remove("active");
+        updateBrowserFrame();
+        updatePreview();
+    });
+
+    setAutoWidth(autoWidthToggle.checked);
 
     var debounceTimer = null;
     function scheduleUpdate() {
@@ -301,10 +375,6 @@
         }, 350);
     }
 
-    widthInput.addEventListener("change", function () {
-        updatePreview();
-        updateBrowserFrame();
-    });
     formatSelect.addEventListener("change", updatePreview);
 
     copyBtn.addEventListener("click", function () {

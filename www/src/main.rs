@@ -8,7 +8,7 @@ use placard_render::{CachingFetcher, Diagnostic, Fetcher, ImageFormat, MemoryBud
 use std::io::BufReader;
 use std::net::{TcpListener, TcpStream};
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
@@ -160,6 +160,39 @@ fn make_fetcher() -> CachingFetcher<fetcher::UreqFetcher> {
     CachingFetcher::new(fetcher::UreqFetcher::new(), CONNECTOR_CACHE_TTL)
 }
 
+struct RenderCounter {
+    count: AtomicU64,
+    path: PathBuf,
+}
+
+impl RenderCounter {
+    fn load() -> Result<Self, String> {
+        let exe = std::env::current_exe()
+            .map_err(|e| format!("failed to locate current executable: {e}"))?;
+        let path = exe
+            .parent()
+            .ok_or("current executable has no parent directory")?
+            .join("render_count.txt");
+        let initial = std::fs::read_to_string(&path)
+            .ok()
+            .and_then(|s| s.trim().parse().ok())
+            .unwrap_or(0);
+        Ok(Self {
+            count: AtomicU64::new(initial),
+            path,
+        })
+    }
+
+    fn get(&self) -> u64 {
+        self.count.load(Ordering::SeqCst)
+    }
+
+    fn record_render(&self) {
+        let new_count = self.count.fetch_add(1, Ordering::SeqCst) + 1;
+        let _ = std::fs::write(&self.path, new_count.to_string());
+    }
+}
+
 fn static_asset(path: &str) -> Option<(&'static str, &'static [u8])> {
     match path {
         "/" => Some((
@@ -279,6 +312,7 @@ fn render_route(
     fonts: &FontSet,
     fetcher: &dyn Fetcher,
     budget: &Arc<MemoryBudget>,
+    render_count: &RenderCounter,
 ) {
     let (format, payload) = if let Some(p) = payload.strip_suffix(".webp") {
         (ImageFormat::Webp, p)
@@ -296,6 +330,13 @@ fn render_route(
         }
     };
     let min_width = match parse_pixel_param(request, "min_width") {
+        Ok(w) => w,
+        Err(msg) => {
+            let _ = write_response(stream, 400, "Bad Request", "text/plain", msg.as_bytes());
+            return;
+        }
+    };
+    let max_width = match parse_pixel_param(request, "max_width") {
         Ok(w) => w,
         Err(msg) => {
             let _ = write_response(stream, 400, "Bad Request", "text/plain", msg.as_bytes());
@@ -346,6 +387,7 @@ fn render_route(
         &html,
         width,
         min_width,
+        max_width,
         fonts,
         Some(fetcher),
         Some(budget),
@@ -388,6 +430,8 @@ fn render_route(
         }
     };
 
+    render_count.record_render();
+
     let diagnostics_header = diagnostics_json(&output.diagnostics);
     let _ = write_response_with_headers(
         stream,
@@ -421,6 +465,7 @@ fn handle(
     fonts: &FontSet,
     fetcher: &dyn Fetcher,
     budget: &Arc<MemoryBudget>,
+    render_count: &RenderCounter,
 ) {
     if request.method != "GET" {
         let _ = write_response(
@@ -439,8 +484,14 @@ fn handle(
         return;
     }
 
+    if request.path == "/count" {
+        let body = render_count.get().to_string();
+        let _ = write_response(stream, 200, "OK", "text/plain; charset=utf-8", body.as_bytes());
+        return;
+    }
+
     if let Some(payload) = request.path.strip_prefix("/r/") {
-        render_route(stream, payload, request, fonts, fetcher, budget);
+        render_route(stream, payload, request, fonts, fetcher, budget, render_count);
         return;
     }
 
@@ -452,6 +503,7 @@ fn handle_connection(
     fonts: &FontSet,
     fetcher: &dyn Fetcher,
     budget: &Arc<MemoryBudget>,
+    render_count: &RenderCounter,
 ) {
     let _ = stream.set_read_timeout(Some(READ_TIMEOUT));
     let _ = stream.set_write_timeout(Some(WRITE_TIMEOUT));
@@ -463,7 +515,7 @@ fn handle_connection(
     let deadline = Instant::now() + MAX_REQUEST_TIME;
 
     match http::read_request(&mut reader, MAX_REQUEST_SIZE, deadline) {
-        Ok(request) => handle(&mut stream, &request, fonts, fetcher, budget),
+        Ok(request) => handle(&mut stream, &request, fonts, fetcher, budget, render_count),
         Err(http::RequestError::TooLarge) => {
             let _ = write_response(
                 &mut stream,
@@ -499,6 +551,7 @@ fn run() -> Result<(), String> {
     let fonts = Arc::new(load_font_set(args.font.as_deref())?);
     let fetcher: Arc<dyn Fetcher> = Arc::new(make_fetcher());
     let budget = Arc::new(MemoryBudget::new(MEMORY_BUDGET_BYTES, MEMORY_WAIT_TIMEOUT));
+    let render_count = Arc::new(RenderCounter::load()?);
 
     let listener =
         TcpListener::bind(("0.0.0.0", args.port)).map_err(|e| format!("bind failed: {e}"))?;
@@ -529,8 +582,9 @@ fn run() -> Result<(), String> {
         let fetcher = Arc::clone(&fetcher);
         let budget = Arc::clone(&budget);
         let active_connections = Arc::clone(&active_connections);
+        let render_count = Arc::clone(&render_count);
         std::thread::spawn(move || {
-            handle_connection(stream, &fonts, fetcher.as_ref(), &budget);
+            handle_connection(stream, &fonts, fetcher.as_ref(), &budget, &render_count);
             active_connections.fetch_sub(1, Ordering::SeqCst);
         });
     }

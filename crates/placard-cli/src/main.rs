@@ -31,25 +31,26 @@ struct Args {
     output: PathBuf,
     width: Option<f32>,
     min_width: Option<f32>,
+    max_width: Option<f32>,
     font: Option<PathBuf>,
     format: Option<ImageFormat>,
 }
 
 fn print_usage() {
     eprintln!(
-        "usage: placard <input.html> [-o <out.webp|.png>] [--width PX] [--min-width PX] [--font PATH] [--format webp|png]"
+        "usage: placard <input.html> [-o <out.webp|.png>] [--width PX] [--min-width PX] [--max-width PX] [--font PATH] [--format webp|png]"
     );
     eprintln!("         (pass - for <input.html> to read from stdin, or - for -o to write raw");
     eprintln!("          image bytes to stdout -- format then defaults to webp; combine as");
     eprintln!("          `placard - -o -` to pipe HTML in and image bytes out)");
     eprintln!(
-        "       placard url <input.html> [--base-url URL] [--width PX] [--min-width PX] [--format webp|png]"
+        "       placard url <input.html> [--base-url URL] [--width PX] [--min-width PX] [--max-width PX] [--format webp|png]"
     );
     eprintln!(
         "         (builds a URL against --base-url; placard doesn't run that service itself)"
     );
     eprintln!(
-        "       placard url <input.html> --static [--width PX] [--min-width PX] [--font PATH] [--format webp|png]"
+        "       placard url <input.html> --static [--width PX] [--min-width PX] [--max-width PX] [--font PATH] [--format webp|png]"
     );
     eprintln!("         (--static renders locally and prints a data: URI -- no server needed,");
     eprintln!("          but it won't update if the source HTML changes)");
@@ -57,7 +58,8 @@ fn print_usage() {
     eprintln!("         (lists every data-preset connector this build knows how to resolve)");
     eprintln!("       output format defaults to webp; pass -o out.png or --format png for PNG");
     eprintln!("       --width defaults to shrink-wrapping the document's natural content width;");
-    eprintln!("       --min-width sets a floor under that (either the auto or explicit width)");
+    eprintln!("       --min-width sets a floor under that (either the auto or explicit width),");
+    eprintln!("       --max-width sets a ceiling under the same rules");
 }
 
 fn parse_args() -> Result<Args, String> {
@@ -65,6 +67,7 @@ fn parse_args() -> Result<Args, String> {
     let mut output = None;
     let mut width = None;
     let mut min_width = None;
+    let mut max_width = None;
     let mut font = None;
     let mut format = None;
 
@@ -81,6 +84,10 @@ fn parse_args() -> Result<Args, String> {
             "--min-width" => {
                 let v = it.next().ok_or("missing value for --min-width")?;
                 min_width = Some(v.parse().map_err(|_| format!("invalid min-width: {v}"))?);
+            }
+            "--max-width" => {
+                let v = it.next().ok_or("missing value for --max-width")?;
+                max_width = Some(v.parse().map_err(|_| format!("invalid max-width: {v}"))?);
             }
             "--font" => font = Some(PathBuf::from(it.next().ok_or("missing value for --font")?)),
             "--format" => {
@@ -110,6 +117,7 @@ fn parse_args() -> Result<Args, String> {
         output,
         width,
         min_width,
+        max_width,
         font,
         format,
     })
@@ -242,6 +250,7 @@ fn run_render(args: Args) -> Result<(), String> {
         &html,
         args.width,
         args.min_width,
+        args.max_width,
         &fonts,
         Some(&fetcher),
         None,
@@ -344,6 +353,7 @@ struct UrlArgs {
     base_url: String,
     width: Option<f32>,
     min_width: Option<f32>,
+    max_width: Option<f32>,
     font: Option<PathBuf>,
     static_uri: bool,
     format: ImageFormat,
@@ -354,6 +364,7 @@ fn parse_url_args() -> Result<UrlArgs, String> {
     let mut base_url = "http://localhost:8080".to_string();
     let mut width = None;
     let mut min_width = None;
+    let mut max_width = None;
     let mut font = None;
     let mut static_uri = false;
     let mut format = ImageFormat::DEFAULT;
@@ -369,6 +380,10 @@ fn parse_url_args() -> Result<UrlArgs, String> {
             "--min-width" => {
                 let v = it.next().ok_or("missing value for --min-width")?;
                 min_width = Some(v.parse().map_err(|_| format!("invalid min-width: {v}"))?);
+            }
+            "--max-width" => {
+                let v = it.next().ok_or("missing value for --max-width")?;
+                max_width = Some(v.parse().map_err(|_| format!("invalid max-width: {v}"))?);
             }
             "--font" => font = Some(PathBuf::from(it.next().ok_or("missing value for --font")?)),
             "--static" => static_uri = true,
@@ -390,6 +405,7 @@ fn parse_url_args() -> Result<UrlArgs, String> {
         base_url,
         width,
         min_width,
+        max_width,
         font,
         static_uri,
         format,
@@ -407,6 +423,7 @@ fn run_url_static(args: &UrlArgs) -> Result<(), String> {
         &html,
         args.width,
         args.min_width,
+        args.max_width,
         &fonts,
         Some(&fetcher),
         None,
@@ -438,6 +455,9 @@ fn run_url() -> Result<(), String> {
     }
     if let Some(min_width) = args.min_width {
         params.push(format!("min_width={min_width}"));
+    }
+    if let Some(max_width) = args.max_width {
+        params.push(format!("max_width={max_width}"));
     }
     if !params.is_empty() {
         url.push('?');

@@ -138,14 +138,31 @@ fn collect_styles(dom: &Dom, node: NodeId, css: &mut String) {
 
 pub const MAX_CANVAS_PIXELS: u64 = 3840 * 2160;
 
+fn clamp_width(width: f32, min_width: Option<f32>, max_width: Option<f32>) -> f32 {
+    let width = width.max(min_width.unwrap_or(0.0));
+    match max_width {
+        Some(max) => width.min(max),
+        None => width,
+    }
+}
+
 pub fn render_to_canvas(
     html: &str,
     width: Option<f32>,
     min_width: Option<f32>,
+    max_width: Option<f32>,
     fonts: &FontSet,
     fetcher: Option<&dyn Fetcher>,
     budget: Option<&Arc<MemoryBudget>>,
 ) -> Result<RenderOutput, String> {
+    if let (Some(min), Some(max)) = (min_width, max_width)
+        && min > max
+    {
+        return Err(format!(
+            "--min-width ({min}) cannot exceed --max-width ({max})"
+        ));
+    }
+
     let mut dom = placard_html::parse(html);
     if let Some(fetcher) = fetcher {
         placard_connectors::resolve(&mut dom, fetcher);
@@ -164,16 +181,13 @@ pub fn render_to_canvas(
         Some(w) => w,
         None => placard_layout::measure_document_width(&dom, &styles, fonts).ceil(),
     };
-    let layout_width = layout_width.max(min_width.unwrap_or(0.0)).max(1.0);
+    let layout_width = clamp_width(layout_width, min_width, max_width).max(1.0);
 
     let tree = placard_layout::build(&dom, &styles, fonts, layout_width);
 
     let height = tree.max_extent_y().round().max(1.0) as u32;
     let canvas_width = if auto_width {
-        tree.max_extent_x()
-            .round()
-            .max(min_width.unwrap_or(0.0))
-            .max(1.0) as u32
+        clamp_width(tree.max_extent_x().round(), min_width, max_width).max(1.0) as u32
     } else {
         layout_width as u32
     };
@@ -274,7 +288,7 @@ mod tests {
         let budget = Arc::new(MemoryBudget::new(1, Duration::from_millis(50)));
         let html = "<body style=\"margin:0\"><div class=\"a\"></div></body>\
                      <style>div.a { width: 10px; height: 10px; }</style>";
-        match render_to_canvas(html, Some(400.0), None, &fonts, None, Some(&budget)) {
+        match render_to_canvas(html, Some(400.0), None, None, &fonts, None, Some(&budget)) {
             Err(err) => assert_eq!(err, AT_CAPACITY_ERROR),
             Ok(_) => panic!("expected the render to be rejected for exceeding the budget"),
         }
@@ -283,7 +297,7 @@ mod tests {
     #[test]
     fn ordinary_document_renders_successfully() {
         let fonts = test_fonts();
-        let canvas = render_to_canvas("<div>hello</div>", Some(400.0), None, &fonts, None, None)
+        let canvas = render_to_canvas("<div>hello</div>", Some(400.0), None, None, &fonts, None, None)
             .expect("should render")
             .canvas;
         assert_eq!(canvas.width(), 400);
@@ -293,7 +307,7 @@ mod tests {
     fn oversized_canvas_is_rejected_with_an_error() {
         let fonts = test_fonts();
         let html = "<div class=\"tall\"></div><style>div.tall { height: 9000000px; }</style>";
-        match render_to_canvas(html, Some(400.0), None, &fonts, None, None) {
+        match render_to_canvas(html, Some(400.0), None, None, &fonts, None, None) {
             Err(err) => assert!(err.contains("exceeds"), "unexpected error message: {err}"),
             Ok(_) => panic!("expected oversized canvas to be rejected"),
         }
@@ -304,6 +318,7 @@ mod tests {
         let fonts = test_fonts();
         let canvas = render_to_canvas(
             "<body style=\"margin: 0\"><div class=\"a\"></div></body><style>div.a { width: 120px; height: 10px; }</style>",
+            None,
             None,
             None,
             &fonts,
@@ -322,6 +337,7 @@ mod tests {
             "<body style=\"margin: 0\"><div class=\"a\"></div></body><style>div.a { width: 20px; height: 10px; }</style>",
             None,
             Some(200.0),
+            None,
             &fonts,
             None,
             None,
@@ -332,6 +348,60 @@ mod tests {
     }
 
     #[test]
+    fn max_width_ceils_the_auto_resolved_width() {
+        let fonts = test_fonts();
+        let canvas = render_to_canvas(
+            "<body style=\"margin: 0\"><div class=\"a\"></div></body><style>div.a { width: 500px; height: 10px; }</style>",
+            None,
+            None,
+            Some(200.0),
+            &fonts,
+            None,
+            None,
+        )
+        .expect("should render")
+        .canvas;
+        assert_eq!(canvas.width(), 200);
+    }
+
+    #[test]
+    fn max_width_ceils_an_explicit_width() {
+        let fonts = test_fonts();
+        let canvas = render_to_canvas(
+            "<div>hello</div>",
+            Some(500.0),
+            None,
+            Some(200.0),
+            &fonts,
+            None,
+            None,
+        )
+        .expect("should render")
+        .canvas;
+        assert_eq!(canvas.width(), 200);
+    }
+
+    #[test]
+    fn min_width_greater_than_max_width_is_rejected() {
+        let fonts = test_fonts();
+        match render_to_canvas(
+            "<div>hello</div>",
+            None,
+            Some(300.0),
+            Some(200.0),
+            &fonts,
+            None,
+            None,
+        ) {
+            Err(err) => assert!(
+                err.contains("min-width") && err.contains("max-width"),
+                "unexpected error message: {err}"
+            ),
+            Ok(_) => panic!("expected min-width > max-width to be rejected"),
+        }
+    }
+
+    #[test]
     fn auto_width_flex_row_has_no_residual_gap_past_a_ceiled_safety_margin() {
         let fonts = test_fonts();
         let canvas = render_to_canvas(
@@ -339,6 +409,7 @@ mod tests {
              <style>div.row { display: flex; } \
              div.a { width: 50px; height: 10px; background: green; } \
              div.b { width: 49.1px; height: 10px; background: green; }</style>",
+            None,
             None,
             None,
             &fonts,
@@ -367,6 +438,7 @@ mod tests {
             "<body style=\"margin: 0\"><div class=\"a\"></div></body><style>div.a { width: 50px; height: 39.6px; background: green; }</style>",
             None,
             None,
+            None,
             &fonts,
             None,
             None,
@@ -387,7 +459,7 @@ mod tests {
     #[test]
     fn ordinary_document_has_no_diagnostics() {
         let fonts = test_fonts();
-        let output = render_to_canvas("<div>hello</div>", Some(400.0), None, &fonts, None, None)
+        let output = render_to_canvas("<div>hello</div>", Some(400.0), None, None, &fonts, None, None)
             .expect("should render");
         assert!(output.diagnostics.is_empty());
     }
@@ -397,7 +469,7 @@ mod tests {
         let fonts = test_fonts();
         let html = "<div class=\"a\">hi</div><style>div.a { cursor: pointer; }</style>";
         let output =
-            render_to_canvas(html, Some(400.0), None, &fonts, None, None).expect("should render");
+            render_to_canvas(html, Some(400.0), None, None, &fonts, None, None).expect("should render");
         assert!(
             output
                 .diagnostics
@@ -413,7 +485,7 @@ mod tests {
         let fonts = test_fonts();
         let html = "<div style=\"font-family: 'some nonexistent font'\">hi</div>";
         let output =
-            render_to_canvas(html, Some(400.0), None, &fonts, None, None).expect("should render");
+            render_to_canvas(html, Some(400.0), None, None, &fonts, None, None).expect("should render");
         let diag = output
             .diagnostics
             .iter()
@@ -427,7 +499,7 @@ mod tests {
         let fonts = test_fonts();
         let html = "<div style=\"font-family: 'Some Nonexistent Font'\">hi</div>";
         let output =
-            render_to_canvas(html, Some(400.0), None, &fonts, None, None).expect("should render");
+            render_to_canvas(html, Some(400.0), None, None, &fonts, None, None).expect("should render");
         assert!(
             output
                 .diagnostics
@@ -445,7 +517,7 @@ mod tests {
                      <div style=\"font-family: MADEUPFONT\">b</div>\
                      <div style=\"font-family: madeupfont\">c</div>";
         let output =
-            render_to_canvas(html, Some(400.0), None, &fonts, None, None).expect("should render");
+            render_to_canvas(html, Some(400.0), None, None, &fonts, None, None).expect("should render");
         let matching: Vec<_> = output
             .diagnostics
             .iter()
