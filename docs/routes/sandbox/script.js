@@ -326,6 +326,21 @@
         initial = localStorage.getItem(STORAGE_KEY);
     } catch (e) {}
 
+    function isLightTheme() {
+        return document.documentElement.getAttribute("data-theme") === "light";
+    }
+
+    var themeCompartment = new cm.Compartment();
+    var highlightCompartment = new cm.Compartment();
+
+    function editorTheme() {
+        return isLightTheme() ? cm.placardThemeLight : cm.placardThemeDark;
+    }
+
+    function editorHighlightStyle() {
+        return isLightTheme() ? cm.defaultHighlightStyle : cm.oneDarkHighlightStyle;
+    }
+
     var view = new cm.EditorView({
         doc: initial || DEFAULT_SOURCE,
         parent: document.getElementById("editor-container"),
@@ -333,14 +348,25 @@
             cm.basicSetup,
             cm.keymap.of([cm.indentWithTab]),
             cm.html(),
-            cm.syntaxHighlighting(cm.oneDarkHighlightStyle),
-            cm.placardTheme,
+            highlightCompartment.of(cm.syntaxHighlighting(editorHighlightStyle())),
+            themeCompartment.of(editorTheme()),
             cm.indentUnit.of("\t"),
             cm.EditorState.tabSize.of(4),
             cm.EditorView.updateListener.of(function (update) {
                 if (update.docChanged) scheduleUpdate();
             }),
         ],
+    });
+
+    window.addEventListener("placard-theme-change", function () {
+        view.dispatch({
+            effects: [
+                themeCompartment.reconfigure(editorTheme()),
+                highlightCompartment.reconfigure(
+                    cm.syntaxHighlighting(editorHighlightStyle()),
+                ),
+            ],
+        });
     });
 
     editor = {

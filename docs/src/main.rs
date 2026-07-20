@@ -175,6 +175,10 @@ fn static_asset(path: &str) -> Option<(&'static str, &'static [u8])> {
             "text/css; charset=utf-8",
             include_bytes!("../routes/assets/theme.css"),
         )),
+        "/assets/theme.js" => Some((
+            "text/javascript; charset=utf-8",
+            include_bytes!("../routes/assets/theme.js"),
+        )),
         "/assets/geist-sans.woff2" => Some((
             "font/woff2",
             include_bytes!("../routes/assets/geist-sans.woff2"),

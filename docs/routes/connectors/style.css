@@ -9,6 +9,12 @@ body {
     font-size: 15px;
 }
 
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
 .search-wrap {
     position: relative;
     display: flex;
@@ -18,7 +24,7 @@ body {
 #search {
     width: 260px;
     max-width: 40vw;
-    background: #0a0a0a;
+    background: var(--code-bg);
     border: 1px solid var(--border);
     border-radius: 6px;
     color: var(--text);
@@ -386,4 +392,15 @@ pre {
     .preset {
         padding: 32px 20px;
     }
+}
+
+:root[data-theme="light"] .run-btn {
+    background: #000;
+    border-color: #000;
+    color: #fff;
+}
+
+:root[data-theme="light"] .run-btn:hover {
+    background: #262626;
+    border-color: #262626;
 }

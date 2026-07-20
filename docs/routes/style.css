@@ -324,3 +324,27 @@ footer .sep {
     margin: 0 10px;
     color: var(--border);
 }
+
+:root[data-theme="light"] strong {
+    color: #000;
+}
+
+:root[data-theme="light"] header.hero .hero-header {
+    color: #000;
+}
+
+:root[data-theme="light"] .topbar .cta.dark:hover {
+    border-color: #bbb;
+    background: #eee;
+}
+
+:root[data-theme="light"] .cta.primary {
+    background: #000;
+    border-color: #000;
+    color: #fff;
+}
+
+:root[data-theme="light"] .cta.primary:hover {
+    background: #262626;
+    border-color: #262626;
+}

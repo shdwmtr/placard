@@ -419,7 +419,7 @@ body {
     /*border-radius: 5px;*/
     background: rgba(0, 0, 0, 0.7);
     font-size: 12px;
-    color: var(--text-tertiary);
+    color: #b3b3b3;
     font-family: var(--font-mono);
     pointer-events: none;
 }
@@ -450,4 +450,33 @@ body {
 }
 .cm-gutter.cm-lineNumbers {
     width: 50px;
+}
+
+:root[data-theme="light"] .btn:hover {
+    border-color: #bbb;
+    background: #eee;
+}
+
+:root[data-theme="light"] .ctrl input:focus,
+:root[data-theme="light"] .ctrl select:focus,
+:root[data-theme="light"] .btn:focus {
+    border-color: #bbb;
+}
+
+:root[data-theme="light"] .console-panel.has-errors .console-header {
+    background: rgba(224, 90, 100, 0.15);
+    color: #c0392b;
+}
+
+:root[data-theme="light"] .console-panel.has-warnings-only .console-header {
+    background: rgba(229, 176, 92, 0.18);
+    color: #92650a;
+}
+
+:root[data-theme="light"] .console-line.warning {
+    color: #92650a;
+}
+
+:root[data-theme="light"] .console-line.error {
+    color: #c0392b;
 }
