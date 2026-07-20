@@ -97,6 +97,7 @@ body {
 }
 
 .pane-label {
+    height: 35px;
     flex: 0 0 auto;
     display: flex;
     align-items: center;
@@ -442,4 +443,11 @@ body {
     .topbar-actions .ctrl span {
         display: none;
     }
+}
+
+.cm-gutterElement span {
+    padding: 14px !important;
+}
+.cm-gutter.cm-lineNumbers {
+    width: 50px;
 }
