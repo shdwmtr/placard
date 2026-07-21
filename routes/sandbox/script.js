@@ -58,9 +58,12 @@
             .replace(/=+$/, "");
     }
 
-    function renderUrl() {
+    function renderUrl(bypassCache) {
         var format = formatSelect.value || "webp";
         var params = [];
+        if (bypassCache) {
+            params.push("nocache=1");
+        }
         if (!autoWidthToggle.checked && widthValueInput.value) {
             params.push("width=" + encodeURIComponent(widthValueInput.value));
         }
@@ -135,11 +138,11 @@
     function updatePreview() {
         if (!editor) return;
         var myToken = ++previewToken;
-        var url = renderUrl();
+        var url = renderUrl(true);
         previewStatus.textContent = "Rendering...";
         previewStatus.classList.remove("error");
 
-        fetch(url)
+        fetch(url, { cache: "no-store" })
             .then(function (res) {
                 if (myToken !== previewToken) return;
                 if (!res.ok) {

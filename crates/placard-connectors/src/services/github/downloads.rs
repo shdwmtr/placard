@@ -136,7 +136,7 @@ pub(crate) fn resolve_downloads(
             extract_assets(&release)?
         }
         None => {
-            let url = format!("https://api.github.com/repos/{owner}/{repo}/releases?per_page=100");
+            let url = format!("https://api.github.com/repos/{owner}/{repo}/releases?per_page=500");
             let releases = fetch_releases(fetcher, &url)?;
             if releases.is_empty() {
                 return Err("github-downloads: no releases found".to_string());
@@ -180,7 +180,7 @@ mod tests {
     #[test]
     fn sums_download_counts_across_assets_and_releases_by_default() {
         let fetcher = FakeFetcher(
-            "https://api.github.com/repos/atom/atom/releases?per_page=100",
+            "https://api.github.com/repos/atom/atom/releases?per_page=500",
             r#"[
                 {"assets": [{"name": "a.deb", "download_count": 100}], "prerelease": false},
                 {"assets": [{"name": "b.rpm", "download_count": 42}], "prerelease": false}
@@ -193,7 +193,7 @@ mod tests {
     #[test]
     fn excludes_prereleases_from_the_all_releases_total_by_default() {
         let fetcher = FakeFetcher(
-            "https://api.github.com/repos/atom/atom/releases?per_page=100",
+            "https://api.github.com/repos/atom/atom/releases?per_page=500",
             r#"[
                 {"assets": [{"name": "a.deb", "download_count": 100}], "prerelease": true},
                 {"assets": [{"name": "b.rpm", "download_count": 42}], "prerelease": false}
@@ -208,7 +208,7 @@ mod tests {
         let mut p = params("atom", "atom");
         p.insert("variant".to_string(), "downloads-pre".to_string());
         let fetcher = FakeFetcher(
-            "https://api.github.com/repos/atom/atom/releases?per_page=100",
+            "https://api.github.com/repos/atom/atom/releases?per_page=500",
             r#"[
                 {"assets": [{"name": "a.deb", "download_count": 100}], "prerelease": true},
                 {"assets": [{"name": "b.rpm", "download_count": 42}], "prerelease": false}
@@ -314,7 +314,7 @@ mod tests {
     #[test]
     fn errors_when_no_releases_exist() {
         let fetcher = FakeFetcher(
-            "https://api.github.com/repos/atom/atom/releases?per_page=100",
+            "https://api.github.com/repos/atom/atom/releases?per_page=500",
             "[]",
         );
         assert!(resolve_downloads(&params("atom", "atom"), &fetcher).is_err());
@@ -346,7 +346,7 @@ mod tests {
     #[test]
     fn errors_when_assets_field_is_missing() {
         let fetcher = FakeFetcher(
-            "https://api.github.com/repos/atom/atom/releases?per_page=100",
+            "https://api.github.com/repos/atom/atom/releases?per_page=500",
             r#"[{"id": 1, "prerelease": false}]"#,
         );
         assert!(resolve_downloads(&params("atom", "atom"), &fetcher).is_err());

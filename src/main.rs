@@ -393,6 +393,13 @@ fn render_route(
             return;
         }
     };
+    let no_cache = match parse_bool_param(request, "nocache", false) {
+        Ok(v) => v,
+        Err(msg) => {
+            let _ = write_response(stream, 400, "Bad Request", "text/plain", msg.as_bytes());
+            return;
+        }
+    };
 
     let decoded = match base64::engine::general_purpose::URL_SAFE_NO_PAD.decode(payload) {
         Ok(d) => d,
@@ -431,6 +438,16 @@ fn render_route(
             );
             return;
         }
+    };
+
+    let fresh_fetcher = if no_cache {
+        Some(fetcher::UreqFetcher::new())
+    } else {
+        None
+    };
+    let fetcher: &dyn Fetcher = match &fresh_fetcher {
+        Some(f) => f,
+        None => fetcher,
     };
 
     let output = match placard_render::render_to_canvas(
@@ -484,7 +501,11 @@ fn render_route(
     render_count.record_render();
 
     let diagnostics_header = diagnostics_json(&output.diagnostics);
-    let cache_control = format!("public, max-age={}", CONNECTOR_CACHE_TTL.as_secs());
+    let cache_control = if no_cache {
+        "no-store".to_string()
+    } else {
+        format!("public, max-age={}", CONNECTOR_CACHE_TTL.as_secs())
+    };
     let _ = write_response_with_headers(
         stream,
         200,
