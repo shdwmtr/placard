@@ -10,7 +10,7 @@ use ureq::unversioned::resolver::{DefaultResolver, ResolvedSocketAddrs, Resolver
 use ureq::unversioned::transport::{DefaultConnector, NextTimeout};
 
 const FETCH_TIMEOUT: Duration = Duration::from_secs(5);
-const MAX_RESPONSE_SIZE: u64 = 64 * 1024;
+const MAX_RESPONSE_SIZE: u64 = 512 * 1024;
 
 pub struct UreqFetcher {
     agent: Agent,
