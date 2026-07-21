@@ -151,6 +151,7 @@ fn paint_box(
                 node.rect.x,
                 baseline,
                 node.style.color,
+                node.style.letter_spacing,
                 antialias,
             );
         }

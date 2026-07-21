@@ -102,6 +102,7 @@ pub fn draw_text(
     mut x: f32,
     baseline_y: f32,
     color: Color,
+    letter_spacing: f32,
     antialias: bool,
 ) {
     let scale = size_px / font.units_per_em() as f32;
@@ -113,7 +114,7 @@ pub fn draw_text(
                 .expect("failed to read glyph outline");
             let path = glyph_path(&outline, scale, x, baseline_y);
             fill_path(canvas, &path, raster_color, antialias);
-            x += font.advance_width(glyph_id) as f32 * scale;
+            x += font.advance_width(glyph_id) as f32 * scale + letter_spacing;
         }
     }
 }

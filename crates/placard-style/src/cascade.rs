@@ -299,6 +299,13 @@ fn line_height_value(v: &Value, font_size: f32) -> Option<LineHeight> {
     }
 }
 
+fn letter_spacing_value(v: &Value, font_size: f32) -> Option<f32> {
+    match v {
+        Value::Keyword(k) if k == "normal" => Some(0.0),
+        _ => resolve_length_component(v, font_size),
+    }
+}
+
 fn apply_border_shorthand(style: &mut ComputedStyle, comps: &[&Value]) {
     let mut width = None;
     let mut border_style = None;
@@ -532,6 +539,15 @@ fn apply_declaration(style: &mut ComputedStyle, decl: &Declaration) -> bool {
                 .and_then(|v| line_height_value(v, style.font_size))
             {
                 style.line_height = lh;
+            }
+            return true;
+        }
+        "letter-spacing" => {
+            if let Some(ls) = comps
+                .first()
+                .and_then(|v| letter_spacing_value(v, style.font_size))
+            {
+                style.letter_spacing = ls;
             }
             return true;
         }

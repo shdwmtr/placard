@@ -2,14 +2,14 @@ mod fetcher;
 mod http;
 
 use base64::Engine as _;
-use http::{write_response, write_response_with_headers, Request};
+use http::{Request, write_response, write_response_with_headers};
 use placard_font::{Font, FontFamily, FontSet, FontStyle, FontWeight};
 use placard_render::{CachingFetcher, Diagnostic, Fetcher, ImageFormat, MemoryBudget, Severity};
 use std::io::BufReader;
 use std::net::{TcpListener, TcpStream};
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use std::time::{Duration, Instant};
 
 const MAX_REQUEST_SIZE: usize = 96 * 1024;
@@ -323,7 +323,10 @@ mod tests {
             .iter()
             .find(|p| p["name"] == "variant")
             .expect("variant param should be present");
-        assert_eq!(variant["options"], serde_json::json!(["downloads", "downloads-pre"]));
+        assert_eq!(
+            variant["options"],
+            serde_json::json!(["downloads", "downloads-pre"])
+        );
     }
 }
 
@@ -560,14 +563,28 @@ fn handle(
         return;
     }
 
-    if request.path == "/count" {
+    if request.path == "/placards-rendered" {
         let body = render_count.get().to_string();
-        let _ = write_response(stream, 200, "OK", "text/plain; charset=utf-8", body.as_bytes());
+        let _ = write_response(
+            stream,
+            200,
+            "OK",
+            "text/plain; charset=utf-8",
+            body.as_bytes(),
+        );
         return;
     }
 
     if let Some(payload) = request.path.strip_prefix("/r/") {
-        render_route(stream, payload, request, fonts, fetcher, budget, render_count);
+        render_route(
+            stream,
+            payload,
+            request,
+            fonts,
+            fetcher,
+            budget,
+            render_count,
+        );
         return;
     }
 

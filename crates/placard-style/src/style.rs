@@ -134,6 +134,7 @@ pub struct ComputedStyle {
     pub font_style: FontStyle,
     pub font_family: Vec<FontFamily>,
     pub line_height: LineHeight,
+    pub letter_spacing: f32,
     pub width: Option<Dimension>,
     pub height: Option<Dimension>,
 
@@ -176,6 +177,7 @@ impl ComputedStyle {
             font_style: FontStyle::Normal,
             font_family: vec![FontFamily::SansSerif],
             line_height: LineHeight::Normal,
+            letter_spacing: 0.0,
             width: None,
             height: None,
             margin: [Some(0.0); 4],
@@ -215,6 +217,7 @@ impl ComputedStyle {
         style.font_style = parent.font_style;
         style.font_family = parent.font_family.clone();
         style.line_height = parent.line_height;
+        style.letter_spacing = parent.letter_spacing;
         style.text_align = parent.text_align;
         style
     }

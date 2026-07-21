@@ -334,6 +334,31 @@ mod tests {
     }
 
     #[test]
+    fn letter_spacing_widens_measured_text_by_a_gap_per_character() {
+        let font = test_font();
+        let dom = placard_html::parse("<div class=\"a\">Hello</div>");
+        let sheet = placard_css::parse("div.a { letter-spacing: 4px; }");
+        let styles = placard_style::compute(&dom, &sheet);
+        let div = dom.first_child(dom.root()).unwrap();
+
+        let width = measure_intrinsic_width(&dom, &styles, &font, div);
+
+        let f = font.get(
+            placard_font::FontFamily::SansSerif,
+            placard_font::FontWeight::Normal,
+            placard_font::FontStyle::Normal,
+        );
+        let scale = 16.0 / f.units_per_em() as f32;
+        let base_width: f32 = "Hello"
+            .chars()
+            .filter_map(|c| f.glyph_id_for_char(c))
+            .map(|g| f.advance_width(g) as f32 * scale)
+            .sum();
+
+        assert_eq!(width, base_width + 4.0 * 5.0);
+    }
+
+    #[test]
     fn measure_intrinsic_width_of_block_children_takes_the_widest_including_margin() {
         let font = test_font();
         let dom = placard_html::parse(

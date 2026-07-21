@@ -198,4 +198,44 @@ mod tests {
         let span = dom.first_child(div).unwrap();
         assert_eq!(styles[span.index()].font_family, vec![FontFamily::Monospace]);
     }
+
+    #[test]
+    fn letter_spacing_accepts_px_and_negative_em_values() {
+        let dom = placard_html::parse("<div class=\"a\"></div><div class=\"b\"></div>");
+        let sheet = placard_css::parse(
+            "div.a { letter-spacing: 2px; }
+             div.b { font-size: 20px; letter-spacing: -0.05em; }",
+        );
+        let styles = compute(&dom, &sheet);
+        let a = dom.first_child(dom.root()).unwrap();
+        let b = dom.children(dom.root()).nth(1).unwrap();
+
+        assert_eq!(styles[a.index()].letter_spacing, 2.0);
+        assert_eq!(styles[b.index()].letter_spacing, -1.0);
+    }
+
+    #[test]
+    fn letter_spacing_normal_keyword_resets_to_zero() {
+        let dom = placard_html::parse("<div style=\"letter-spacing: normal\"></div>");
+        let styles = compute(&dom, &placard_css::parse(""));
+        let div = dom.first_child(dom.root()).unwrap();
+        assert_eq!(styles[div.index()].letter_spacing, 0.0);
+    }
+
+    #[test]
+    fn letter_spacing_is_inherited() {
+        let dom = placard_html::parse("<div>text</div>");
+        let sheet = placard_css::parse("div { letter-spacing: 3px; }");
+        let styles = compute(&dom, &sheet);
+        let div = dom.first_child(dom.root()).unwrap();
+        let text = dom.first_child(div).unwrap();
+        assert_eq!(styles[text.index()].letter_spacing, 3.0);
+    }
+
+    #[test]
+    fn lint_recognizes_letter_spacing() {
+        let dom = placard_html::parse("<div></div>");
+        let sheet = placard_css::parse("div { letter-spacing: 1px; }");
+        assert!(lint(&dom, &sheet).is_empty());
+    }
 }

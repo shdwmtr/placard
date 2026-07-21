@@ -133,11 +133,16 @@ fn collect_inline_items_rec(
     }
 }
 
-fn measure_text(font: &Font, text: &str, scale: f32) -> f32 {
-    text.chars()
-        .filter_map(|c| font.glyph_id_for_char(c))
-        .map(|g| font.advance_width(g) as f32 * scale)
-        .sum()
+fn measure_text(font: &Font, text: &str, scale: f32, letter_spacing: f32) -> f32 {
+    let mut width = 0.0f32;
+    let mut count = 0usize;
+    for c in text.chars() {
+        if let Some(g) = font.glyph_id_for_char(c) {
+            width += font.advance_width(g) as f32 * scale;
+            count += 1;
+        }
+    }
+    width + letter_spacing * count as f32
 }
 
 fn resolved_line_height(style: &ComputedStyle) -> f32 {
@@ -212,8 +217,8 @@ pub(crate) fn layout_inline_content(
     for (i, item) in items.iter().enumerate() {
         let font = resolve_font(fonts, &item.style);
         let scale = item.style.font_size / font.units_per_em() as f32;
-        let word_width = measure_text(font, &item.word, scale);
-        let space_width = measure_text(font, " ", scale);
+        let word_width = measure_text(font, &item.word, scale, item.style.letter_spacing);
+        let space_width = measure_text(font, " ", scale, item.style.letter_spacing);
         let content_height = content_box_height(font, scale);
         let line_box_height = resolved_line_height(&item.style).max(content_height);
 

@@ -309,6 +309,24 @@ mod tests {
     }
 
     #[test]
+    fn letter_spacing_widens_the_shrink_to_fit_canvas() {
+        let fonts = test_fonts();
+        let plain = "<body style=\"margin: 0\"><div>Hello</div></body>";
+        let spaced = "<body style=\"margin: 0\"><div style=\"letter-spacing: 5px\">Hello</div></body>";
+
+        let plain_width = render_to_canvas(plain, None, None, None, true, &fonts, None, None)
+            .expect("should render")
+            .canvas
+            .width();
+        let spaced_width = render_to_canvas(spaced, None, None, None, true, &fonts, None, None)
+            .expect("should render")
+            .canvas
+            .width();
+
+        assert_eq!(spaced_width, plain_width + 5 * 5);
+    }
+
+    #[test]
     fn oversized_canvas_is_rejected_with_an_error() {
         let fonts = test_fonts();
         let html = "<div class=\"tall\"></div><style>div.tall { height: 9000000px; }</style>";
