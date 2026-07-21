@@ -32,25 +32,26 @@ struct Args {
     width: Option<f32>,
     min_width: Option<f32>,
     max_width: Option<f32>,
+    antialiasing: bool,
     font: Option<PathBuf>,
     format: Option<ImageFormat>,
 }
 
 fn print_usage() {
     eprintln!(
-        "usage: placard <input.html> [-o <out.webp|.png>] [--width PX] [--min-width PX] [--max-width PX] [--font PATH] [--format webp|png]"
+        "usage: placard <input.html> [-o <out.webp|.png>] [--width PX] [--min-width PX] [--max-width PX] [--no-anti-aliasing] [--font PATH] [--format webp|png]"
     );
     eprintln!("         (pass - for <input.html> to read from stdin, or - for -o to write raw");
     eprintln!("          image bytes to stdout -- format then defaults to webp; combine as");
     eprintln!("          `placard - -o -` to pipe HTML in and image bytes out)");
     eprintln!(
-        "       placard url <input.html> [--base-url URL] [--width PX] [--min-width PX] [--max-width PX] [--format webp|png]"
+        "       placard url <input.html> [--base-url URL] [--width PX] [--min-width PX] [--max-width PX] [--no-anti-aliasing] [--format webp|png]"
     );
     eprintln!(
         "         (builds a URL against --base-url; placard doesn't run that service itself)"
     );
     eprintln!(
-        "       placard url <input.html> --static [--width PX] [--min-width PX] [--max-width PX] [--font PATH] [--format webp|png]"
+        "       placard url <input.html> --static [--width PX] [--min-width PX] [--max-width PX] [--no-anti-aliasing] [--font PATH] [--format webp|png]"
     );
     eprintln!("         (--static renders locally and prints a data: URI -- no server needed,");
     eprintln!("          but it won't update if the source HTML changes)");
@@ -60,6 +61,9 @@ fn print_usage() {
     eprintln!("       --width defaults to shrink-wrapping the document's natural content width;");
     eprintln!("       --min-width sets a floor under that (either the auto or explicit width),");
     eprintln!("       --max-width sets a ceiling under the same rules");
+    eprintln!(
+        "       --no-anti-aliasing disables edge/glyph antialiasing, producing hard-thresholded pixels"
+    );
 }
 
 fn parse_args() -> Result<Args, String> {
@@ -68,6 +72,7 @@ fn parse_args() -> Result<Args, String> {
     let mut width = None;
     let mut min_width = None;
     let mut max_width = None;
+    let mut antialiasing = true;
     let mut font = None;
     let mut format = None;
 
@@ -89,6 +94,7 @@ fn parse_args() -> Result<Args, String> {
                 let v = it.next().ok_or("missing value for --max-width")?;
                 max_width = Some(v.parse().map_err(|_| format!("invalid max-width: {v}"))?);
             }
+            "--no-anti-aliasing" => antialiasing = false,
             "--font" => font = Some(PathBuf::from(it.next().ok_or("missing value for --font")?)),
             "--format" => {
                 let v = it.next().ok_or("missing value for --format")?;
@@ -118,6 +124,7 @@ fn parse_args() -> Result<Args, String> {
         width,
         min_width,
         max_width,
+        antialiasing,
         font,
         format,
     })
@@ -251,6 +258,7 @@ fn run_render(args: Args) -> Result<(), String> {
         args.width,
         args.min_width,
         args.max_width,
+        args.antialiasing,
         &fonts,
         Some(&fetcher),
         None,
@@ -354,6 +362,7 @@ struct UrlArgs {
     width: Option<f32>,
     min_width: Option<f32>,
     max_width: Option<f32>,
+    antialiasing: bool,
     font: Option<PathBuf>,
     static_uri: bool,
     format: ImageFormat,
@@ -365,6 +374,7 @@ fn parse_url_args() -> Result<UrlArgs, String> {
     let mut width = None;
     let mut min_width = None;
     let mut max_width = None;
+    let mut antialiasing = true;
     let mut font = None;
     let mut static_uri = false;
     let mut format = ImageFormat::DEFAULT;
@@ -385,6 +395,7 @@ fn parse_url_args() -> Result<UrlArgs, String> {
                 let v = it.next().ok_or("missing value for --max-width")?;
                 max_width = Some(v.parse().map_err(|_| format!("invalid max-width: {v}"))?);
             }
+            "--no-anti-aliasing" => antialiasing = false,
             "--font" => font = Some(PathBuf::from(it.next().ok_or("missing value for --font")?)),
             "--static" => static_uri = true,
             "--format" => {
@@ -406,6 +417,7 @@ fn parse_url_args() -> Result<UrlArgs, String> {
         width,
         min_width,
         max_width,
+        antialiasing,
         font,
         static_uri,
         format,
@@ -424,6 +436,7 @@ fn run_url_static(args: &UrlArgs) -> Result<(), String> {
         args.width,
         args.min_width,
         args.max_width,
+        args.antialiasing,
         &fonts,
         Some(&fetcher),
         None,
@@ -458,6 +471,9 @@ fn run_url() -> Result<(), String> {
     }
     if let Some(max_width) = args.max_width {
         params.push(format!("max_width={max_width}"));
+    }
+    if !args.antialiasing {
+        params.push("antialiasing=0".to_string());
     }
     if !params.is_empty() {
         url.push('?');

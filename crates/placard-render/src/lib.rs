@@ -151,6 +151,7 @@ pub fn render_to_canvas(
     width: Option<f32>,
     min_width: Option<f32>,
     max_width: Option<f32>,
+    antialiasing: bool,
     fonts: &FontSet,
     fetcher: Option<&dyn Fetcher>,
     budget: Option<&Arc<MemoryBudget>>,
@@ -211,7 +212,7 @@ pub fn render_to_canvas(
 
     let mut canvas = Canvas::new(canvas_width, height);
     canvas.fill(Color::rgba(255, 255, 255, 255));
-    placard_paint::paint(&mut canvas, &tree, fonts);
+    placard_paint::paint(&mut canvas, &tree, fonts, antialiasing);
     Ok(RenderOutput {
         canvas,
         diagnostics,
@@ -288,7 +289,7 @@ mod tests {
         let budget = Arc::new(MemoryBudget::new(1, Duration::from_millis(50)));
         let html = "<body style=\"margin:0\"><div class=\"a\"></div></body>\
                      <style>div.a { width: 10px; height: 10px; }</style>";
-        match render_to_canvas(html, Some(400.0), None, None, &fonts, None, Some(&budget)) {
+        match render_to_canvas(html, Some(400.0), None, None, true, &fonts, None, Some(&budget)) {
             Err(err) => assert_eq!(err, AT_CAPACITY_ERROR),
             Ok(_) => panic!("expected the render to be rejected for exceeding the budget"),
         }
@@ -297,7 +298,7 @@ mod tests {
     #[test]
     fn ordinary_document_renders_successfully() {
         let fonts = test_fonts();
-        let canvas = render_to_canvas("<div>hello</div>", Some(400.0), None, None, &fonts, None, None)
+        let canvas = render_to_canvas("<div>hello</div>", Some(400.0), None, None, true, &fonts, None, None)
             .expect("should render")
             .canvas;
         assert_eq!(canvas.width(), 400);
@@ -307,7 +308,7 @@ mod tests {
     fn oversized_canvas_is_rejected_with_an_error() {
         let fonts = test_fonts();
         let html = "<div class=\"tall\"></div><style>div.tall { height: 9000000px; }</style>";
-        match render_to_canvas(html, Some(400.0), None, None, &fonts, None, None) {
+        match render_to_canvas(html, Some(400.0), None, None, true, &fonts, None, None) {
             Err(err) => assert!(err.contains("exceeds"), "unexpected error message: {err}"),
             Ok(_) => panic!("expected oversized canvas to be rejected"),
         }
@@ -321,6 +322,7 @@ mod tests {
             None,
             None,
             None,
+            true,
             &fonts,
             None,
             None,
@@ -338,6 +340,7 @@ mod tests {
             None,
             Some(200.0),
             None,
+            true,
             &fonts,
             None,
             None,
@@ -355,6 +358,7 @@ mod tests {
             None,
             None,
             Some(200.0),
+            true,
             &fonts,
             None,
             None,
@@ -372,6 +376,7 @@ mod tests {
             Some(500.0),
             None,
             Some(200.0),
+            true,
             &fonts,
             None,
             None,
@@ -389,6 +394,7 @@ mod tests {
             None,
             Some(300.0),
             Some(200.0),
+            true,
             &fonts,
             None,
             None,
@@ -412,6 +418,7 @@ mod tests {
             None,
             None,
             None,
+            true,
             &fonts,
             None,
             None,
@@ -439,6 +446,7 @@ mod tests {
             None,
             None,
             None,
+            true,
             &fonts,
             None,
             None,
@@ -459,7 +467,7 @@ mod tests {
     #[test]
     fn ordinary_document_has_no_diagnostics() {
         let fonts = test_fonts();
-        let output = render_to_canvas("<div>hello</div>", Some(400.0), None, None, &fonts, None, None)
+        let output = render_to_canvas("<div>hello</div>", Some(400.0), None, None, true, &fonts, None, None)
             .expect("should render");
         assert!(output.diagnostics.is_empty());
     }
@@ -469,7 +477,7 @@ mod tests {
         let fonts = test_fonts();
         let html = "<div class=\"a\">hi</div><style>div.a { cursor: pointer; }</style>";
         let output =
-            render_to_canvas(html, Some(400.0), None, None, &fonts, None, None).expect("should render");
+            render_to_canvas(html, Some(400.0), None, None, true, &fonts, None, None).expect("should render");
         assert!(
             output
                 .diagnostics
@@ -485,7 +493,7 @@ mod tests {
         let fonts = test_fonts();
         let html = "<div style=\"font-family: 'some nonexistent font'\">hi</div>";
         let output =
-            render_to_canvas(html, Some(400.0), None, None, &fonts, None, None).expect("should render");
+            render_to_canvas(html, Some(400.0), None, None, true, &fonts, None, None).expect("should render");
         let diag = output
             .diagnostics
             .iter()
@@ -499,7 +507,7 @@ mod tests {
         let fonts = test_fonts();
         let html = "<div style=\"font-family: 'Some Nonexistent Font'\">hi</div>";
         let output =
-            render_to_canvas(html, Some(400.0), None, None, &fonts, None, None).expect("should render");
+            render_to_canvas(html, Some(400.0), None, None, true, &fonts, None, None).expect("should render");
         assert!(
             output
                 .diagnostics
@@ -517,7 +525,7 @@ mod tests {
                      <div style=\"font-family: MADEUPFONT\">b</div>\
                      <div style=\"font-family: madeupfont\">c</div>";
         let output =
-            render_to_canvas(html, Some(400.0), None, None, &fonts, None, None).expect("should render");
+            render_to_canvas(html, Some(400.0), None, None, true, &fonts, None, None).expect("should render");
         let matching: Vec<_> = output
             .diagnostics
             .iter()
@@ -527,6 +535,38 @@ mod tests {
             matching.len(),
             1,
             "expected one deduplicated diagnostic, got {matching:?}"
+        );
+    }
+
+    fn has_blended_edge_pixel(canvas: &placard_raster::Canvas) -> bool {
+        canvas.pixels().chunks(4).any(|p| p[0] != 0 && p[0] != 255)
+    }
+
+    #[test]
+    fn antialiasing_disabled_produces_only_binary_pixel_colors() {
+        let fonts = test_fonts();
+        let html =
+            "<body style=\"margin: 0\"><div style=\"font-size: 60px; color: #000000;\">e</div></body>";
+        let canvas = render_to_canvas(html, Some(100.0), None, None, false, &fonts, None, None)
+            .expect("should render")
+            .canvas;
+        assert!(
+            !has_blended_edge_pixel(&canvas),
+            "expected only pure black or pure white pixels with antialiasing disabled"
+        );
+    }
+
+    #[test]
+    fn antialiasing_enabled_produces_blended_edge_colors() {
+        let fonts = test_fonts();
+        let html =
+            "<body style=\"margin: 0\"><div style=\"font-size: 60px; color: #000000;\">e</div></body>";
+        let canvas = render_to_canvas(html, Some(100.0), None, None, true, &fonts, None, None)
+            .expect("should render")
+            .canvas;
+        assert!(
+            has_blended_edge_pixel(&canvas),
+            "expected some blended edge pixels with antialiasing enabled"
         );
     }
 }

@@ -27,7 +27,7 @@ fn effective_border_widths(node: &BoxNode) -> [f32; 4] {
     widths
 }
 
-fn paint_background_and_border(canvas: &mut Canvas, node: &BoxNode) {
+fn paint_background_and_border(canvas: &mut Canvas, node: &BoxNode, antialias: bool) {
     let radius = node.style.border_radius;
     let widths = effective_border_widths(node);
     let has_border = widths.iter().any(|&w| w > 0.0);
@@ -55,7 +55,12 @@ fn paint_background_and_border(canvas: &mut Canvas, node: &BoxNode) {
             );
         } else {
             let path = rounded_rect_cw(node.rect, radius);
-            fill_path(canvas, &path, to_raster_color(node.style.background_color));
+            fill_path(
+                canvas,
+                &path,
+                to_raster_color(node.style.background_color),
+                antialias,
+            );
         }
     }
 
@@ -76,7 +81,12 @@ fn paint_background_and_border(canvas: &mut Canvas, node: &BoxNode) {
             (radius[3] - widths[2].max(widths[3])).max(0.0),
         ];
         let ring = border_ring(node.rect, radius, inner_rect, inner_radius);
-        fill_path(canvas, &ring, to_raster_color(node.style.border_color[0]));
+        fill_path(
+            canvas,
+            &ring,
+            to_raster_color(node.style.border_color[0]),
+            antialias,
+        );
     } else {
         let r = node.rect;
         if widths[0] > 0.0 {
@@ -118,11 +128,17 @@ fn paint_background_and_border(canvas: &mut Canvas, node: &BoxNode) {
     }
 }
 
-fn paint_box(canvas: &mut Canvas, tree: &LayoutTree, id: LayoutNodeId, fonts: &FontSet) {
+fn paint_box(
+    canvas: &mut Canvas,
+    tree: &LayoutTree,
+    id: LayoutNodeId,
+    fonts: &FontSet,
+    antialias: bool,
+) {
     let node = tree.get(id);
     match &node.kind {
         BoxKind::Block | BoxKind::InlineBackground => {
-            paint_background_and_border(canvas, node);
+            paint_background_and_border(canvas, node, antialias);
         }
         BoxKind::Text { content } => {
             let font = resolve_font(fonts, &node.style);
@@ -135,16 +151,17 @@ fn paint_box(canvas: &mut Canvas, tree: &LayoutTree, id: LayoutNodeId, fonts: &F
                 node.rect.x,
                 baseline,
                 node.style.color,
+                antialias,
             );
         }
     }
     for &child in tree.children(id) {
-        paint_box(canvas, tree, child, fonts);
+        paint_box(canvas, tree, child, fonts, antialias);
     }
 }
 
-pub fn paint(canvas: &mut Canvas, tree: &LayoutTree, fonts: &FontSet) {
-    paint_box(canvas, tree, tree.root(), fonts);
+pub fn paint(canvas: &mut Canvas, tree: &LayoutTree, fonts: &FontSet, antialias: bool) {
+    paint_box(canvas, tree, tree.root(), fonts, antialias);
 }
 
 #[cfg(test)]
@@ -178,7 +195,7 @@ mod tests {
         let tree = placard_layout::build(&dom, &styles, &fonts, 200.0);
 
         let mut canvas = Canvas::new(200, 100);
-        paint(&mut canvas, &tree, &fonts);
+        paint(&mut canvas, &tree, &fonts, true);
 
         let pixel = canvas.get_pixel(10, 10);
         assert_eq!(pixel, placard_raster::Color::rgba(255, 0, 0, 255));
@@ -199,7 +216,7 @@ mod tests {
 
         let mut canvas = Canvas::new(155, 20);
         canvas.fill(placard_raster::Color::rgba(255, 255, 255, 255));
-        paint(&mut canvas, &tree, &fonts);
+        paint(&mut canvas, &tree, &fonts, true);
 
         assert_eq!(
             canvas.get_pixel(77, 10),

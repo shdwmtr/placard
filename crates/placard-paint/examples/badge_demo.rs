@@ -41,7 +41,7 @@ fn main() {
     let mut canvas = Canvas::new(viewport_width as u32, canvas_height);
     canvas.fill(Color::rgba(255, 255, 255, 255));
 
-    placard_paint::paint(&mut canvas, &tree, &font);
+    placard_paint::paint(&mut canvas, &tree, &font, true);
 
     let out_path = "target/badge_demo.png";
     png::write(&canvas, out_path).expect("failed to write PNG");

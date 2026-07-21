@@ -87,7 +87,7 @@ impl Path {
 /// cover `path`'s bounding box (clamped to the canvas and padded by a pixel
 /// for anti-aliasing), not the whole canvas -- filling one small glyph on a
 /// large canvas costs work proportional to the glyph, not to the canvas.
-pub fn fill_path(canvas: &mut Canvas, path: &Path, color: Color) {
+pub fn fill_path(canvas: &mut Canvas, path: &Path, color: Color, antialias: bool) {
     let canvas_width_total = canvas.width() as usize;
     let canvas_height_total = canvas.height() as usize;
     if canvas_width_total == 0 || canvas_height_total == 0 {
@@ -160,7 +160,10 @@ pub fn fill_path(canvas: &mut Canvas, path: &Path, color: Color) {
         let mut cover = 0.0f32;
         for col in 0..width {
             cover += accum[row_offset + col];
-            let alpha = cover.abs().min(1.0);
+            let mut alpha = cover.abs().min(1.0);
+            if !antialias {
+                alpha = if alpha >= 0.5 { 1.0 } else { 0.0 };
+            }
             if alpha > 1.0 / 512.0 {
                 let mut c = color;
                 c.a = (c.a as f32 * alpha).round() as u8;
@@ -327,7 +330,7 @@ mod tests {
         path.line_to(2.0, 5.0);
         path.close();
 
-        fill_path(&mut canvas, &path, Color::rgba(0, 0, 0, 255));
+        fill_path(&mut canvas, &path, Color::rgba(0, 0, 0, 255), true);
 
         assert_eq!(alpha_at(&canvas, 3, 3), 255);
         assert_eq!(alpha_at(&canvas, 0, 0), 0);
@@ -347,7 +350,7 @@ mod tests {
         path.line_to(2.5, 3.0);
         path.close();
 
-        fill_path(&mut canvas, &path, Color::rgba(0, 0, 0, 255));
+        fill_path(&mut canvas, &path, Color::rgba(0, 0, 0, 255), true);
 
         assert_eq!(alpha_at(&canvas, 3, 2), 255);
         assert_eq!(alpha_at(&canvas, 4, 2), 255);
@@ -373,7 +376,7 @@ mod tests {
         path.line_to(-2.0, 5.0);
         path.close();
 
-        fill_path(&mut canvas, &path, Color::rgba(0, 0, 0, 255));
+        fill_path(&mut canvas, &path, Color::rgba(0, 0, 0, 255), true);
 
         assert_eq!(alpha_at(&canvas, 0, 3), 255);
         assert_eq!(alpha_at(&canvas, 1, 3), 255);
@@ -391,7 +394,7 @@ mod tests {
         path.line_to(5.0, 5.0);
         path.close();
 
-        fill_path(&mut canvas, &path, Color::rgba(0, 0, 0, 255));
+        fill_path(&mut canvas, &path, Color::rgba(0, 0, 0, 255), true);
 
         assert_eq!(alpha_at(&canvas, 4, 3), 0);
         assert_eq!(alpha_at(&canvas, 5, 3), 255);
@@ -414,7 +417,7 @@ mod tests {
         path.line_to(7.0, 3.0);
         path.close();
 
-        fill_path(&mut canvas, &path, Color::rgba(0, 0, 0, 255));
+        fill_path(&mut canvas, &path, Color::rgba(0, 0, 0, 255), true);
 
         assert_eq!(alpha_at(&canvas, 2, 2), 255);
         assert_eq!(alpha_at(&canvas, 5, 5), 0);
@@ -430,7 +433,7 @@ mod tests {
         path.line_to(2.0, 12.0);
         path.close();
 
-        fill_path(&mut canvas, &path, Color::rgba(0, 0, 0, 255));
+        fill_path(&mut canvas, &path, Color::rgba(0, 0, 0, 255), true);
 
         assert_eq!(alpha_at(&canvas, 10, 11), 255);
         assert_eq!(alpha_at(&canvas, 10, 4), 0);

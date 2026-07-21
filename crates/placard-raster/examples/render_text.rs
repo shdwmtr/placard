@@ -83,7 +83,7 @@ fn draw_text(
                 .outline(glyph_id)
                 .expect("failed to read glyph outline");
             let path = glyph_path(&outline, scale, x, baseline_y);
-            fill_path(canvas, &path, color);
+            fill_path(canvas, &path, color, true);
             x += font.advance_width(glyph_id) as f32 * scale;
         }
     }

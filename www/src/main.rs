@@ -305,6 +305,15 @@ fn parse_pixel_param(request: &Request, name: &str) -> Result<Option<f32>, Strin
     }
 }
 
+fn parse_bool_param(request: &Request, name: &str, default: bool) -> Result<bool, String> {
+    match request.query_param(name) {
+        Some("1") | Some("true") => Ok(true),
+        Some("0") | Some("false") => Ok(false),
+        Some(_) => Err(format!("{name} must be 0, 1, true, or false")),
+        None => Ok(default),
+    }
+}
+
 fn render_route(
     stream: &mut TcpStream,
     payload: &str,
@@ -338,6 +347,13 @@ fn render_route(
     };
     let max_width = match parse_pixel_param(request, "max_width") {
         Ok(w) => w,
+        Err(msg) => {
+            let _ = write_response(stream, 400, "Bad Request", "text/plain", msg.as_bytes());
+            return;
+        }
+    };
+    let antialiasing = match parse_bool_param(request, "antialiasing", true) {
+        Ok(v) => v,
         Err(msg) => {
             let _ = write_response(stream, 400, "Bad Request", "text/plain", msg.as_bytes());
             return;
@@ -388,6 +404,7 @@ fn render_route(
         width,
         min_width,
         max_width,
+        antialiasing,
         fonts,
         Some(fetcher),
         Some(budget),
@@ -433,13 +450,17 @@ fn render_route(
     render_count.record_render();
 
     let diagnostics_header = diagnostics_json(&output.diagnostics);
+    let cache_control = format!("public, max-age={}", CONNECTOR_CACHE_TTL.as_secs());
     let _ = write_response_with_headers(
         stream,
         200,
         "OK",
         format.content_type(),
         &bytes,
-        &[("X-Placard-Diagnostics", &diagnostics_header)],
+        &[
+            ("X-Placard-Diagnostics", &diagnostics_header),
+            ("Cache-Control", &cache_control),
+        ],
     );
 }
 
