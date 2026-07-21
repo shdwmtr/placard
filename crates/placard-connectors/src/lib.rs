@@ -4,7 +4,7 @@ mod json;
 mod services;
 
 pub use services::all_presets;
-pub use services::meta::{Param, PresetMeta};
+pub use services::meta::{Param, PresetMeta, param_options};
 
 use placard_html::{Dom, NodeId};
 use std::collections::HashMap;
@@ -49,12 +49,20 @@ impl<F: Fetcher> Fetcher for CachingFetcher<F> {
 
 const MAX_CONNECTORS_PER_DOCUMENT: usize = 20;
 
-pub fn resolve(dom: &mut Dom, fetcher: &dyn Fetcher) {
+pub fn resolve(dom: &mut Dom, fetcher: &dyn Fetcher) -> Vec<String> {
     let mut remaining = MAX_CONNECTORS_PER_DOCUMENT;
-    resolve_node(dom, dom.root(), fetcher, &mut remaining);
+    let mut failures = Vec::new();
+    resolve_node(dom, dom.root(), fetcher, &mut remaining, &mut failures);
+    failures
 }
 
-fn resolve_node(dom: &mut Dom, node: NodeId, fetcher: &dyn Fetcher, remaining: &mut usize) {
+fn resolve_node(
+    dom: &mut Dom,
+    node: NodeId,
+    fetcher: &dyn Fetcher,
+    remaining: &mut usize,
+    failures: &mut Vec<String>,
+) {
     if *remaining == 0 {
         return;
     }
@@ -64,23 +72,37 @@ fn resolve_node(dom: &mut Dom, node: NodeId, fetcher: &dyn Fetcher, remaining: &
 
     if let Some(url) = dom.attr(node, "data-connector").map(str::to_string) {
         *remaining -= 1;
-        if let Ok(value) = generic::resolve(&url, fetcher) {
-            dom.set_text_content(node, &apply_number_format_if_present(value, &number_format));
-            resolved = true;
+        match generic::resolve(&url, fetcher) {
+            Ok(value) => {
+                dom.set_text_content(node, &apply_number_format_if_present(value, &number_format));
+                resolved = true;
+            }
+            Err(err) => {
+                failures.push(format!(
+                    "connector '{url}' failed, kept fallback content: {err}"
+                ));
+            }
         }
     } else if let Some(preset) = dom.attr(node, "data-preset").map(str::to_string) {
         *remaining -= 1;
         let params = collect_data_params(dom, node);
-        if let Ok(value) = services::resolve_preset(&preset, &params, fetcher) {
-            dom.set_text_content(node, &apply_number_format_if_present(value, &number_format));
-            resolved = true;
+        match services::resolve_preset(&preset, &params, fetcher) {
+            Ok(value) => {
+                dom.set_text_content(node, &apply_number_format_if_present(value, &number_format));
+                resolved = true;
+            }
+            Err(err) => {
+                failures.push(format!(
+                    "preset '{preset}' failed, kept fallback content: {err}"
+                ));
+            }
         }
     }
 
     if !resolved {
         let children: Vec<NodeId> = dom.children(node).collect();
         for child in children {
-            resolve_node(dom, child, fetcher, remaining);
+            resolve_node(dom, child, fetcher, remaining, failures);
         }
     }
 }
@@ -188,11 +210,42 @@ mod tests {
                 Err("network error".to_string())
             }
         }
-        resolve(&mut dom, &FailingFetcher);
+        let failures = resolve(&mut dom, &FailingFetcher);
 
         let span = dom.first_child(dom.root()).unwrap();
         let text_node = dom.first_child(span).unwrap();
         assert_eq!(dom.text(text_node), Some("fallback"));
+        assert_eq!(failures.len(), 1);
+        assert!(failures[0].contains("https://example.com"));
+        assert!(failures[0].contains("network error"));
+    }
+
+    #[test]
+    fn reports_the_preset_name_when_a_preset_fails() {
+        let mut dom = placard_html::parse(
+            r#"<span data-preset="github-stars" data-owner="shdwmtr" data-repo="placard">0</span>"#,
+        );
+        struct FailingFetcher;
+        impl Fetcher for FailingFetcher {
+            fn fetch(&self, _url: &str) -> Result<Vec<u8>, String> {
+                Err("rate limited".to_string())
+            }
+        }
+        let failures = resolve(&mut dom, &FailingFetcher);
+
+        assert_eq!(failures.len(), 1);
+        assert!(failures[0].contains("github-stars"));
+        assert!(failures[0].contains("rate limited"));
+    }
+
+    #[test]
+    fn returns_no_failures_when_everything_resolves() {
+        let mut dom = placard_html::parse(
+            r#"<span data-preset="github-stars" data-owner="shdwmtr" data-repo="placard">0</span>"#,
+        );
+        let fetcher = FakeFetcher(r#"{"stargazers_count": 99}"#);
+        let failures = resolve(&mut dom, &fetcher);
+        assert!(failures.is_empty());
     }
 
     #[test]

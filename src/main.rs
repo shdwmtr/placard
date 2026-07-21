@@ -55,6 +55,10 @@ fn parse_args() -> Result<Args, String> {
 }
 
 fn fonts_dir_path() -> Result<PathBuf, String> {
+    if let Some(path) = std::env::var_os("PLACARD_FONTS_PATH") {
+        return Ok(PathBuf::from(path));
+    }
+
     let exe =
         std::env::current_exe().map_err(|e| format!("failed to locate current executable: {e}"))?;
     Ok(exe
@@ -285,12 +289,42 @@ fn presets_json() -> Vec<u8> {
                         "name": param.name,
                         "required": param.required,
                         "example": param.example,
+                        "options": placard_render::param_options(p.preset, param.name),
                     })).collect::<Vec<_>>(),
                 })
             })
             .collect(),
     );
     serde_json::to_vec(&value).unwrap_or_default()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::presets_json;
+
+    #[test]
+    fn includes_options_for_enum_params_and_omits_them_for_free_form_ones() {
+        let value: serde_json::Value = serde_json::from_slice(&presets_json()).unwrap();
+        let presets = value.as_array().unwrap();
+
+        let github_downloads = presets
+            .iter()
+            .find(|p| p["preset"] == "github-downloads")
+            .expect("github-downloads preset should be present");
+        let params = github_downloads["params"].as_array().unwrap();
+
+        let owner = params
+            .iter()
+            .find(|p| p["name"] == "owner")
+            .expect("owner param should be present");
+        assert_eq!(owner["options"].as_array().unwrap().len(), 0);
+
+        let variant = params
+            .iter()
+            .find(|p| p["name"] == "variant")
+            .expect("variant param should be present");
+        assert_eq!(variant["options"], serde_json::json!(["downloads", "downloads-pre"]));
+    }
 }
 
 fn parse_pixel_param(request: &Request, name: &str) -> Result<Option<f32>, String> {

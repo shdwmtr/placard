@@ -277,7 +277,8 @@ pre {
     color: var(--tok-tag);
 }
 
-.tester-fields input {
+.tester-fields input,
+.tester-fields select {
     background: var(--code-bg);
     border: 1px solid var(--border);
     /*border-radius: 5px;*/
@@ -288,7 +289,8 @@ pre {
     min-width: 160px;
 }
 
-.tester-fields input:focus {
+.tester-fields input:focus,
+.tester-fields select:focus {
     outline: none;
     border-color: #444;
 }

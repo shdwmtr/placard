@@ -352,6 +352,21 @@ pub(crate) const PRESETS: &[PresetMeta] = &[
                 required: false,
                 example: "v0.190.0",
             },
+            Param {
+                name: "variant",
+                required: false,
+                example: "downloads-pre",
+            },
+            Param {
+                name: "sort",
+                required: false,
+                example: "date",
+            },
+            Param {
+                name: "asset_name",
+                required: false,
+                example: "total",
+            },
         ],
         numeric: true,
         resolve: resolve_downloads,

@@ -8,7 +8,9 @@ use std::sync::{Arc, Condvar, Mutex};
 use std::time::{Duration, Instant};
 
 pub use format::{ImageFormat, format_for_path};
-pub use placard_connectors::{CachingFetcher, Fetcher, Param, PresetMeta, all_presets};
+pub use placard_connectors::{
+    CachingFetcher, Fetcher, Param, PresetMeta, all_presets, param_options,
+};
 pub use placard_style::{Diagnostic, Severity};
 
 const MAX_DIAGNOSTICS: usize = 200;
@@ -165,13 +167,15 @@ pub fn render_to_canvas(
     }
 
     let mut dom = placard_html::parse(html);
-    if let Some(fetcher) = fetcher {
-        placard_connectors::resolve(&mut dom, fetcher);
-    }
+    let connector_failures = match fetcher {
+        Some(fetcher) => placard_connectors::resolve(&mut dom, fetcher),
+        None => Vec::new(),
+    };
     let css_text = extract_styles(&dom);
     let (stylesheet, mut diagnostics) = placard_css::parse_with_diagnostics(&css_text);
     let styles = placard_style::compute(&dom, &stylesheet);
 
+    diagnostics.extend(connector_failures.into_iter().map(Diagnostic::warning));
     diagnostics.extend(placard_style::lint(&dom, &stylesheet));
     diagnostics.extend(font_diagnostics(&styles, fonts));
     diagnostics.truncate(MAX_DIAGNOSTICS);
@@ -462,6 +466,37 @@ mod tests {
             canvas.get_pixel(10, 39),
             placard_raster::Color::rgba(0, 128, 0, 255)
         );
+    }
+
+    #[test]
+    fn failed_connector_surfaces_a_warning_diagnostic_and_keeps_fallback_content() {
+        struct FailingFetcher;
+        impl Fetcher for FailingFetcher {
+            fn fetch(&self, _url: &str) -> Result<Vec<u8>, String> {
+                Err("network error".to_string())
+            }
+        }
+
+        let fonts = test_fonts();
+        let html = r#"<div data-connector="https://example.com">fallback</div>"#;
+        let output = render_to_canvas(
+            html,
+            Some(400.0),
+            None,
+            None,
+            true,
+            &fonts,
+            Some(&FailingFetcher),
+            None,
+        )
+        .expect("should render");
+
+        let diag = output
+            .diagnostics
+            .iter()
+            .find(|d| d.message.contains("network error"))
+            .expect("expected a warning diagnostic about the failed connector");
+        assert_eq!(diag.severity, Severity::Warning);
     }
 
     #[test]

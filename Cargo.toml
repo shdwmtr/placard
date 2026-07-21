@@ -13,6 +13,20 @@ members = [
     "crates/placard-connectors",
 ]
 
+[package]
+name = "placard-docs-server"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+placard-render = { path = "crates/placard-render" }
+placard-font = { path = "crates/placard-font" }
+
+ureq = { version = "=3.3.0" }
+base64 = "0.22"
+serde_json = "1"
+
 [profile.release]
 strip = true
 lto = true

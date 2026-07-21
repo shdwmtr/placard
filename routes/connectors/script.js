@@ -12,7 +12,9 @@
         }
         (children || []).forEach(function (c) {
             if (c === null || c === undefined) return;
-            e.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+            e.appendChild(
+                typeof c === "string" ? document.createTextNode(c) : c,
+            );
         });
         return e;
     }
@@ -42,12 +44,40 @@
         code.appendChild(document.createTextNode("\n    "));
         code.appendChild(tok("text", "0"));
         code.appendChild(document.createTextNode(" "));
-        code.appendChild(tok("comment", "<!-- fallback text, kept if resolution fails -->"));
+        code.appendChild(
+            tok("comment", "<!-- fallback text, kept if resolution fails -->"),
+        );
         code.appendChild(document.createTextNode("\n"));
         code.appendChild(tok("punct", "</"));
         code.appendChild(tok("tag", "span"));
         code.appendChild(tok("punct", ">"));
         return el("pre", null, [code]);
+    }
+
+    function paramField(param) {
+        if (param.options && param.options.length > 0) {
+            var options = param.options.slice();
+            if (options.indexOf(param.example) === -1) {
+                options.unshift(param.example);
+            }
+            return el(
+                "select",
+                { "data-param": param.name },
+                options.map(function (opt) {
+                    var attrs = { value: opt };
+                    if (opt === param.example) {
+                        attrs.selected = "selected";
+                    }
+                    return el("option", attrs, [opt]);
+                }),
+            );
+        }
+        return el("input", {
+            type: "text",
+            "data-param": param.name,
+            value: param.example,
+            placeholder: param.name,
+        });
     }
 
     function testerBlock(preset) {
@@ -57,22 +87,23 @@
                 el("label", null, [
                     el(
                         "span",
-                        { class: "field-name " + (param.required ? "req" : "opt") },
+                        {
+                            class:
+                                "field-name " +
+                                (param.required ? "req" : "opt"),
+                        },
                         ["data-" + param.name],
                     ),
-                    el("input", {
-                        type: "text",
-                        "data-param": param.name,
-                        value: param.example,
-                        placeholder: param.name,
-                    }),
+                    paramField(param),
                 ]),
             );
         });
         if (preset.numeric) {
             fields.appendChild(
                 el("label", null, [
-                    el("span", { class: "field-name opt" }, ["data-number-format"]),
+                    el("span", { class: "field-name opt" }, [
+                        "data-number-format",
+                    ]),
                     el("input", {
                         type: "text",
                         "data-param": "number-format",
@@ -86,12 +117,13 @@
         var bar = el("div", { class: "tester-bar" }, [
             el(
                 "button",
-                { type: "button", class: "run-btn", "data-preset": preset.preset },
+                {
+                    type: "button",
+                    class: "run-btn",
+                    "data-preset": preset.preset,
+                },
                 ["Run"],
             ),
-            el("span", { class: "tester-hint" }, [
-                "renders through this server's own /r/ route",
-            ]),
         ]);
 
         var output = el("div", { class: "tester-output" }, [
@@ -136,23 +168,37 @@
             main.appendChild(el("p", { class: "desc" }, [preset.description]));
         } else {
             main.appendChild(
-                el("p", { class: "desc placeholder" }, ["No description mined yet."]),
+                el("p", { class: "desc placeholder" }, [
+                    "No description mined yet.",
+                ]),
             );
         }
 
         main.appendChild(el("hr"));
-        main.appendChild(el("h2", { id: "params-" + preset.preset }, ["Parameters"]));
+        main.appendChild(
+            el("h2", { id: "params-" + preset.preset }, ["Parameters"]),
+        );
 
         if (preset.params.length === 0 && !preset.numeric) {
             main.appendChild(el("p", { class: "dim" }, ["No parameters."]));
         } else {
             var tbody = el("tbody");
             preset.params.forEach(function (param) {
+                var options = param.options || [];
                 tbody.appendChild(
                     el("tr", null, [
                         el("td", { class: "mono" }, ["data-" + param.name]),
-                        el("td", null, [param.required ? "required" : "optional"]),
+                        el("td", null, [
+                            param.required ? "required" : "optional",
+                        ]),
                         el("td", { class: "mono" }, [param.example]),
+                        el(
+                            "td",
+                            { class: "mono" },
+                            options.length > 0
+                                ? [options.join(" · ")]
+                                : [el("span", { class: "dim" }, ["--"])],
+                        ),
                     ]),
                 );
             });
@@ -168,8 +214,13 @@
                         },
                         [
                             el("td", { class: "mono" }, ["data-number-format"]),
-                            el("td", { class: "universal" }, ["optional · numeric"]),
+                            el("td", { class: "universal" }, [
+                                "optional · numeric",
+                            ]),
                             el("td", { class: "mono" }, ["%.2f · %,d · %.0fK"]),
+                            el("td", { class: "mono" }, [
+                                el("span", { class: "dim" }, ["--"]),
+                            ]),
                         ],
                     ),
                 );
@@ -181,6 +232,7 @@
                             el("th", null, ["Attribute"]),
                             el("th", null, ["Required"]),
                             el("th", null, ["Example"]),
+                            el("th", null, ["Options"]),
                         ]),
                     ]),
                     tbody,
@@ -191,7 +243,9 @@
         main.appendChild(exampleSnippet(preset));
 
         main.appendChild(el("hr"));
-        main.appendChild(el("h2", { id: "tester-" + preset.preset }, ["Try it"]));
+        main.appendChild(
+            el("h2", { id: "tester-" + preset.preset }, ["Try it"]),
+        );
         main.appendChild(testerBlock(preset));
 
         var toc = el("aside", { class: "preset-toc" }, [
@@ -201,18 +255,29 @@
             toc.appendChild(
                 el(
                     "a",
-                    { class: "toc-link", "data-scrollto": "params-" + preset.preset },
+                    {
+                        class: "toc-link",
+                        "data-scrollto": "params-" + preset.preset,
+                    },
                     ["Parameters"],
                 ),
             );
         }
         toc.appendChild(
-            el("a", { class: "toc-link", "data-scrollto": "tester-" + preset.preset }, [
-                "Try it",
-            ]),
+            el(
+                "a",
+                {
+                    class: "toc-link",
+                    "data-scrollto": "tester-" + preset.preset,
+                },
+                ["Try it"],
+            ),
         );
 
-        return el("section", { class: "preset", id: preset.preset }, [main, toc]);
+        return el("section", { class: "preset", id: preset.preset }, [
+            main,
+            toc,
+        ]);
     }
 
     function renderPresets(presets) {
@@ -292,7 +357,9 @@
 
         if (!location.hash && links.length > 0) {
             location.replace(
-                location.pathname + location.search + links[0].getAttribute("href"),
+                location.pathname +
+                    location.search +
+                    links[0].getAttribute("href"),
             );
         }
 
@@ -312,49 +379,55 @@
             return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
         }
 
-        document.getElementById("content").addEventListener("click", function (e) {
-            var tocLink = e.target.closest(".toc-link");
-            if (tocLink) {
-                var el = document.getElementById(tocLink.dataset.scrollto);
-                if (el) {
-                    el.scrollIntoView({ behavior: "smooth", block: "start" });
+        document
+            .getElementById("content")
+            .addEventListener("click", function (e) {
+                var tocLink = e.target.closest(".toc-link");
+                if (tocLink) {
+                    var el = document.getElementById(tocLink.dataset.scrollto);
+                    if (el) {
+                        el.scrollIntoView({
+                            behavior: "smooth",
+                            block: "start",
+                        });
+                    }
+                    return;
                 }
-                return;
-            }
 
-            var btn = e.target.closest(".run-btn");
-            if (!btn) {
-                return;
-            }
-            var section = btn.closest(".preset");
-            var inputs = Array.prototype.slice.call(
-                section.querySelectorAll(".tester input[data-param]"),
-            );
-            var html = '<span data-preset="' + btn.dataset.preset + '"';
-            inputs.forEach(function (input) {
-                var value = input.value.trim();
-                if (value !== "") {
-                    html +=
-                        " data-" +
-                        input.dataset.param +
-                        '="' +
-                        attrEscape(value) +
-                        '"';
+                var btn = e.target.closest(".run-btn");
+                if (!btn) {
+                    return;
                 }
+                var section = btn.closest(".preset");
+                var inputs = Array.prototype.slice.call(
+                    section.querySelectorAll(".tester input[data-param]"),
+                );
+                var html = '<span data-preset="' + btn.dataset.preset + '"';
+                inputs.forEach(function (input) {
+                    var value = input.value.trim();
+                    if (value !== "") {
+                        html +=
+                            " data-" +
+                            input.dataset.param +
+                            '="' +
+                            attrEscape(value) +
+                            '"';
+                    }
+                });
+                html += ">0</span>";
+
+                var img = section.querySelector(".tester-img");
+                img.removeAttribute("src");
+                img.alt = "rendering...";
+                img.src = "/r/" + base64url(html) + ".webp";
+                img.onload = function () {
+                    img.alt = "rendered preview for " + btn.dataset.preset;
+                };
+                img.onerror = function () {
+                    img.alt =
+                        "render failed -- check the parameter values above";
+                };
             });
-            html += ">0</span>";
-
-            var img = section.querySelector(".tester-img");
-            img.removeAttribute("src");
-            img.alt = "rendering...";
-            img.src = "/r/" + base64url(html) + ".webp";
-            img.onload = function () {
-                img.alt = "rendered preview for " + btn.dataset.preset;
-            };
-            img.onerror = function () {
-                img.alt = "render failed -- check the parameter values above";
-            };
-        });
     }
 
     fetch("/presets")

@@ -131,6 +131,10 @@ fn parse_args() -> Result<Args, String> {
 }
 
 fn fonts_dir_path() -> Result<PathBuf, String> {
+    if let Some(path) = env::var_os("PLACARD_FONTS_PATH") {
+        return Ok(PathBuf::from(path));
+    }
+
     let exe =
         env::current_exe().map_err(|e| format!("failed to locate current executable: {e}"))?;
     Ok(exe
