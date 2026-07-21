@@ -486,18 +486,22 @@ tr:last-child td {
     overflow: auto;
 }
 .window-code .window-body {
-    padding: 14px 16px;
     overflow: visible;
 }
-.window-code .window-body pre {
-    margin: 0;
+.code-viewer {
+    border: 1px solid var(--border);
+    padding: 14px 16px;
+}
+.code-viewer .cm-editor {
+    height: auto;
+}
+.code-viewer .cm-scroller {
+    overflow: visible;
+    font-size: 12px;
+}
+.window-code .code-viewer {
     border: none;
-    background: none;
     padding: 0;
-    font-size: 10.5px;
-    line-height: 1.55;
-    white-space: pre-wrap;
-    word-break: break-word;
 }
 .window-preview .window-body {
     display: flex;

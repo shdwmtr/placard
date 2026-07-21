@@ -9,6 +9,7 @@
         <link rel="stylesheet" href="/style.css" />
         <script src="/assets/theme.js"></script>
     </head>
+
     <body>
         <header class="topbar">
             <div class="topbar-inner">
@@ -126,7 +127,7 @@
             <section id="what-is-placard" class="showcase">
                 <div class="showcase-grid">
                     <div class="showcase-intro">
-                        <h2>Your README, just not niche-er.</h2>
+                        <h2>Your README just got better.</h2>
                         <p>
                             Static badge generators give everyone the same tired
                             template. Placard renders real HTML and CSS instead,
@@ -153,24 +154,10 @@
                                 <span class="window-tab">badge.html</span>
                             </div>
                             <div class="window-body">
-                                <pre><code><span class="tok-punct">&lt;</span><span class="tok-tag">body</span><span class="tok-punct">&gt;</span>
-    <span class="tok-punct">&lt;</span><span class="tok-tag">div</span> <span class="tok-attr">class</span><span class="tok-punct">=</span><span class="tok-string">"wrap"</span><span class="tok-punct">&gt;</span>
-        <span class="tok-punct">&lt;</span><span class="tok-tag">span</span> <span class="tok-attr">class</span><span class="tok-punct">=</span><span class="tok-string">"label"</span><span class="tok-punct">&gt;</span>stars<span class="tok-punct">&lt;/</span><span class="tok-tag">span</span><span class="tok-punct">&gt;</span>
-        <span class="tok-punct">&lt;</span><span class="tok-tag">span</span>
-            <span class="tok-attr">class</span><span class="tok-punct">=</span><span class="tok-string">"value"</span>
-            <span class="tok-attr">data-preset</span><span class="tok-punct">=</span><span class="tok-string">"github-stars"</span>
-            <span class="tok-attr">data-owner</span><span class="tok-punct">=</span><span class="tok-string">"shdwmtr"</span>
-            <span class="tok-attr">data-repo</span><span class="tok-punct">=</span><span class="tok-string">"placard"</span>
-        <span class="tok-punct">&gt;</span>0<span class="tok-punct">&lt;/</span><span class="tok-tag">span</span><span class="tok-punct">&gt;</span>
-    <span class="tok-punct">&lt;/</span><span class="tok-tag">div</span><span class="tok-punct">&gt;</span>
-<span class="tok-punct">&lt;/</span><span class="tok-tag">body</span><span class="tok-punct">&gt;</span>
-<span class="tok-punct">&lt;</span><span class="tok-tag">style</span><span class="tok-punct">&gt;</span>
-    <span class="tok-tag">body</span> <span class="tok-punct">{</span> <span class="tok-attr">margin</span><span class="tok-punct">:</span> <span class="tok-string">0</span><span class="tok-punct">;</span> <span class="tok-attr">background</span><span class="tok-punct">:</span> <span class="tok-string">#000</span><span class="tok-punct">;</span> <span class="tok-punct">}</span>
-    <span class="tok-tag">.wrap</span> <span class="tok-punct">{</span> <span class="tok-attr">display</span><span class="tok-punct">:</span> <span class="tok-string">flex</span><span class="tok-punct">;</span> <span class="tok-attr">font-family</span><span class="tok-punct">:</span> <span class="tok-string">monospace</span><span class="tok-punct">;</span> <span class="tok-attr">font-size</span><span class="tok-punct">:</span> <span class="tok-string">14px</span><span class="tok-punct">;</span> <span class="tok-attr">font-weight</span><span class="tok-punct">:</span> <span class="tok-string">bold</span><span class="tok-punct">;</span> <span class="tok-punct">}</span>
-    <span class="tok-tag">.label</span><span class="tok-punct">,</span> <span class="tok-tag">.value</span> <span class="tok-punct">{</span> <span class="tok-attr">padding</span><span class="tok-punct">:</span> <span class="tok-string">8px 14px</span><span class="tok-punct">;</span> <span class="tok-punct">}</span>
-    <span class="tok-tag">.label</span> <span class="tok-punct">{</span> <span class="tok-attr">background</span><span class="tok-punct">:</span> <span class="tok-string">#1a1a1a</span><span class="tok-punct">;</span> <span class="tok-attr">color</span><span class="tok-punct">:</span> <span class="tok-string">#a1a1a1</span><span class="tok-punct">;</span> <span class="tok-punct">}</span>
-    <span class="tok-tag">.value</span> <span class="tok-punct">{</span> <span class="tok-attr">background</span><span class="tok-punct">:</span> <span class="tok-string">#2ea043</span><span class="tok-punct">;</span> <span class="tok-attr">color</span><span class="tok-punct">:</span> <span class="tok-string">#fff</span><span class="tok-punct">;</span> <span class="tok-punct">}</span>
-<span class="tok-punct">&lt;/</span><span class="tok-tag">style</span><span class="tok-punct">&gt;</span></code></pre>
+                                <div
+                                    class="code-viewer"
+                                    id="hero-code-viewer"
+                                ></div>
                             </div>
                         </div>
                         <div class="window window-preview">
@@ -473,8 +460,8 @@
                         <div class="get-started-step">
                             <div class="get-started-step-head">
                                 <p>
-                                    Install the CLI and render your first image
-                                    in two lines.
+                                    Install the CLI and get a live render URL
+                                    from placard.cc in two lines.
                                 </p>
                                 <button
                                     type="button"
@@ -484,8 +471,7 @@
                                     Copy CLI code
                                 </button>
                             </div>
-                            <pre id="cli-snippet"><code><span class="tok-punct">$</span> <span class="tok-tag">cargo</span> <span class="tok-string">install</span> <span class="tok-string">placard</span>
-<span class="tok-punct">$</span> <span class="tok-tag">placard</span> <span class="tok-string">badge.html</span> <span class="tok-attr">-o</span> <span class="tok-string">badge.png</span></code></pre>
+                            <div class="code-viewer" id="cli-snippet"></div>
                         </div>
                         <div class="get-started-step">
                             <div class="get-started-step-head">
@@ -502,18 +488,7 @@
                                     Copy HTML code
                                 </button>
                             </div>
-                            <pre id="html-snippet"><code><span class="tok-punct">&lt;</span><span class="tok-tag">body</span><span class="tok-punct">&gt;</span>
-    <span class="tok-punct">&lt;</span><span class="tok-tag">div</span> <span class="tok-attr">class</span><span class="tok-punct">=</span><span class="tok-string">"wrap"</span><span class="tok-punct">&gt;</span>
-        <span class="tok-punct">&lt;</span><span class="tok-tag">span</span> <span class="tok-attr">class</span><span class="tok-punct">=</span><span class="tok-string">"label"</span><span class="tok-punct">&gt;</span>build<span class="tok-punct">&lt;/</span><span class="tok-tag">span</span><span class="tok-punct">&gt;</span>
-        <span class="tok-punct">&lt;</span><span class="tok-tag">span</span> <span class="tok-attr">class</span><span class="tok-punct">=</span><span class="tok-string">"value"</span><span class="tok-punct">&gt;</span>passing<span class="tok-punct">&lt;/</span><span class="tok-tag">span</span><span class="tok-punct">&gt;</span>
-    <span class="tok-punct">&lt;/</span><span class="tok-tag">div</span><span class="tok-punct">&gt;</span>
-<span class="tok-punct">&lt;/</span><span class="tok-tag">body</span><span class="tok-punct">&gt;</span>
-<span class="tok-punct">&lt;</span><span class="tok-tag">style</span><span class="tok-punct">&gt;</span>
-    <span class="tok-tag">body</span> <span class="tok-punct">{</span> <span class="tok-attr">margin</span><span class="tok-punct">:</span> <span class="tok-string">0</span><span class="tok-punct">;</span> <span class="tok-attr">background</span><span class="tok-punct">:</span> <span class="tok-string">#000000</span><span class="tok-punct">;</span> <span class="tok-punct">}</span>
-    <span class="tok-tag">.wrap</span> <span class="tok-punct">{</span> <span class="tok-attr">display</span><span class="tok-punct">:</span> <span class="tok-string">flex</span><span class="tok-punct">;</span> <span class="tok-attr">font-family</span><span class="tok-punct">:</span> <span class="tok-string">monospace</span><span class="tok-punct">;</span> <span class="tok-attr">font-size</span><span class="tok-punct">:</span> <span class="tok-string">14px</span><span class="tok-punct">;</span> <span class="tok-attr">font-weight</span><span class="tok-punct">:</span> <span class="tok-string">bold</span><span class="tok-punct">;</span> <span class="tok-punct">}</span>
-    <span class="tok-tag">.label</span> <span class="tok-punct">{</span> <span class="tok-attr">background</span><span class="tok-punct">:</span> <span class="tok-string">#1a1a1a</span><span class="tok-punct">;</span> <span class="tok-attr">color</span><span class="tok-punct">:</span> <span class="tok-string">#a1a1a1</span><span class="tok-punct">;</span> <span class="tok-attr">padding</span><span class="tok-punct">:</span> <span class="tok-string">8px 14px</span><span class="tok-punct">;</span> <span class="tok-punct">}</span>
-    <span class="tok-tag">.value</span> <span class="tok-punct">{</span> <span class="tok-attr">background</span><span class="tok-punct">:</span> <span class="tok-string">#2ea043</span><span class="tok-punct">;</span> <span class="tok-attr">color</span><span class="tok-punct">:</span> <span class="tok-string">#ffffff</span><span class="tok-punct">;</span> <span class="tok-attr">padding</span><span class="tok-punct">:</span> <span class="tok-string">8px 14px</span><span class="tok-punct">;</span> <span class="tok-punct">}</span>
-<span class="tok-punct">&lt;/</span><span class="tok-tag">style</span><span class="tok-punct">&gt;</span></code></pre>
+                            <div class="code-viewer" id="html-snippet"></div>
                         </div>
                     </div>
                 </div>
@@ -533,6 +508,7 @@
                 </span>
             </footer>
         </div>
+        <script src="/sandbox/editor.js"></script>
         <script>
             document
                 .querySelectorAll("[data-copy-target]")
@@ -553,6 +529,119 @@
                             });
                     });
                 });
+
+            (function () {
+                var cm = window.__cm;
+                if (!cm) return;
+
+                function isLightTheme() {
+                    return (
+                        document.documentElement.getAttribute("data-theme") ===
+                        "light"
+                    );
+                }
+
+                var themeCompartment = new cm.Compartment();
+                var highlightCompartment = new cm.Compartment();
+                var views = [];
+
+                function editorTheme() {
+                    return isLightTheme()
+                        ? cm.placardThemeLight
+                        : cm.placardThemeDark;
+                }
+
+                function editorHighlightStyle() {
+                    return isLightTheme()
+                        ? cm.defaultHighlightStyle
+                        : cm.oneDarkHighlightStyle;
+                }
+
+                function mountCodeViewer(id, code) {
+                    var parent = document.getElementById(id);
+                    if (!parent) return;
+                    views.push(
+                        new cm.EditorView({
+                            doc: code,
+                            parent: parent,
+                            extensions: [
+                                cm.html(),
+                                highlightCompartment.of(
+                                    cm.syntaxHighlighting(
+                                        editorHighlightStyle(),
+                                    ),
+                                ),
+                                themeCompartment.of(editorTheme()),
+                                cm.EditorView.lineWrapping,
+                                cm.EditorState.readOnly.of(true),
+                                cm.EditorView.editable.of(false),
+                            ],
+                        }),
+                    );
+                }
+
+                mountCodeViewer(
+                    "hero-code-viewer",
+                    [
+                        "<body>",
+                        '    <div class="wrap">',
+                        '        <span class="label">stars</span>',
+                        "        <span",
+                        '            class="value"',
+                        '            data-preset="github-stars"',
+                        '            data-owner="shdwmtr"',
+                        '            data-repo="placard"',
+                        "        >0</span>",
+                        "    </div>",
+                        "</body>",
+                        "<style>",
+                        "    body { margin: 0; background: #000; }",
+                        "    .wrap { display: flex; font-family: monospace; font-size: 14px; font-weight: bold; }",
+                        "    .label, .value { padding: 8px 14px; }",
+                        "    .label { background: #1a1a1a; color: #a1a1a1; }",
+                        "    .value { background: #2ea043; color: #fff; }",
+                        "</style>",
+                    ].join("\n"),
+                );
+
+                mountCodeViewer(
+                    "cli-snippet",
+                    [
+                        "$ cargo install placard",
+                        "$ placard url badge.html --base-url https://placard.cc",
+                    ].join("\n"),
+                );
+
+                mountCodeViewer(
+                    "html-snippet",
+                    [
+                        "<body>",
+                        '    <div class="wrap">',
+                        '        <span class="label">build</span>',
+                        '        <span class="value">passing</span>',
+                        "    </div>",
+                        "</body>",
+                        "<style>",
+                        "    body { margin: 0; background: #000000; }",
+                        "    .wrap { display: flex; font-family: monospace; font-size: 14px; font-weight: bold; }",
+                        "    .label { background: #1a1a1a; color: #a1a1a1; padding: 8px 14px; }",
+                        "    .value { background: #2ea043; color: #ffffff; padding: 8px 14px; }",
+                        "</style>",
+                    ].join("\n"),
+                );
+
+                window.addEventListener("placard-theme-change", function () {
+                    var effects = [
+                        themeCompartment.reconfigure(editorTheme()),
+                        highlightCompartment.reconfigure(
+                            cm.syntaxHighlighting(editorHighlightStyle()),
+                        ),
+                    ];
+                    views.forEach(function (view) {
+                        view.dispatch({ effects: effects });
+                    });
+                });
+            })();
         </script>
     </body>
 </html>

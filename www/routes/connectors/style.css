@@ -26,7 +26,7 @@ body {
     max-width: 40vw;
     background: var(--code-bg);
     border: 1px solid var(--border);
-    border-radius: 6px;
+    height: 35px;
     color: var(--text);
     padding: 7px 34px 7px 12px;
     font-size: 13px;

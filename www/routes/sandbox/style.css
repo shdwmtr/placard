@@ -93,8 +93,64 @@ body {
     min-width: 0;
 }
 
-.code-pane {
-    border-right: 1px solid var(--border);
+.editor-divider {
+    flex: 0 0 auto;
+    width: 17px;
+    margin: 0 -8px;
+    position: relative;
+    z-index: 3;
+    cursor: ew-resize;
+    background: transparent;
+}
+
+.editor-divider::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--border);
+}
+
+.editor-divider::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 16px;
+    height: 48px;
+    border-radius: 999px;
+    background-color: rgba(255, 255, 255, 0.12);
+    background-image:
+        linear-gradient(currentColor, currentColor),
+        linear-gradient(currentColor, currentColor),
+        linear-gradient(currentColor, currentColor);
+    background-repeat: no-repeat;
+    background-size: 1.5px 20px;
+    background-position:
+        left 4.5px center,
+        center,
+        right 4.5px center;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.editor-divider:hover::after,
+.editor-divider.dragging::after {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.85);
+}
+
+:root[data-theme="light"] .editor-divider::after {
+    background-color: rgba(0, 0, 0, 0.08);
+    color: rgba(0, 0, 0, 0.35);
+}
+
+:root[data-theme="light"] .editor-divider:hover::after,
+:root[data-theme="light"] .editor-divider.dragging::after {
+    background-color: rgba(0, 0, 0, 0.14);
+    color: rgba(0, 0, 0, 0.6);
 }
 
 .pane-label {
@@ -154,6 +210,7 @@ body {
         transform: scaleY(0.9);
         opacity: 0;
     }
+
     to {
         transform: scaleY(1);
         opacity: 1;
@@ -517,10 +574,12 @@ body {
     .editor-layout {
         flex-direction: column;
     }
+
     .code-pane {
         border-right: none;
         border-bottom: 1px solid var(--border);
     }
+
     .topbar-actions .ctrl span {
         display: none;
     }
@@ -529,6 +588,7 @@ body {
 .cm-gutterElement span {
     padding: 14px !important;
 }
+
 .cm-gutter.cm-lineNumbers {
     width: 50px;
 }

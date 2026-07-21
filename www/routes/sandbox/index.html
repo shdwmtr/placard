@@ -1,182 +1,125 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Placard • Playground</title>
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-        <link rel="stylesheet" href="/assets/theme.css" />
-        <link rel="stylesheet" href="/sandbox/style.css" />
-        <script src="/assets/theme.js"></script>
-    </head>
-    <body>
-        <header class="topbar">
-            <div class="topbar-inner">
-                <div class="brand">
-                    <a href="/">
-                        <span class="mark"
-                            ><img
-                                src="/favicon.svg"
-                                alt=""
-                                width="20"
-                                height="20"
-                        /></span>
-                        <span class="sep">/</span>
-                        Placard </a
-                    ><span class="sep">/</span>Sandbox Mode
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Placard • Playground</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="stylesheet" href="/assets/theme.css" />
+    <link rel="stylesheet" href="/sandbox/style.css" />
+    <script src="/assets/theme.js"></script>
+</head>
+
+<body>
+    <header class="topbar">
+        <div class="topbar-inner">
+            <div class="brand">
+                <a href="/">
+                    <span class="mark"><img src="/favicon.svg" alt="" width="20" height="20" /></span>
+                    <span class="sep">/</span>
+                    Placard
+                </a>
+                <!--<span class="sep">/</span>Sandbox Mode-->
+            </div>
+            <div class="topbar-actions">
+                <label class="ctrl">
+                    <select id="format">
+                        <option value="webp" selected>WebP</option>
+                        <option value="png">PNG</option>
+                    </select>
+                </label>
+                <button type="button" id="copy-url" class="btn">
+                    Copy render URL
+                </button>
+                <button type="button" class="theme-toggle" data-theme-toggle title="Toggle theme"
+                    aria-label="Toggle theme">
+                    <svg class="icon-light" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="4"></circle>
+                        <path
+                            d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41">
+                        </path>
+                    </svg>
+                    <svg class="icon-dark" viewBox="0 0 24 24" width="14" height="14" fill="currentColor"
+                        aria-hidden="true">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+    <div class="editor-layout">
+        <section class="pane code-pane">
+            <div class="pane-label">
+                <span>Editor</span>
+            </div>
+            <div class="editor-wrap" id="editor-container"></div>
+            <div class="console-panel" id="console-panel">
+                <div class="console-header" id="console-toggle">
+                    <span class="console-icon" id="console-icon"></span>
+                    <span class="console-summary" id="console-summary"></span>
+                    <span class="console-chevron" id="console-chevron">&#9662;</span>
                 </div>
-                <div class="topbar-actions">
-                    <label class="ctrl">
-                        <select id="format">
-                            <option value="webp" selected>WebP</option>
-                            <option value="png">PNG</option>
-                        </select>
-                    </label>
-                    <button type="button" id="copy-url" class="btn">
-                        Copy render URL
-                    </button>
-                    <button
-                        type="button"
-                        class="theme-toggle"
-                        data-theme-toggle
-                        title="Toggle theme"
-                        aria-label="Toggle theme"
-                    >
-                        <svg
-                            class="icon-light"
-                            viewBox="0 0 24 24"
-                            width="14"
-                            height="14"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            aria-hidden="true"
-                        >
-                            <circle cx="12" cy="12" r="4"></circle>
-                            <path
-                                d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"
-                            ></path>
-                        </svg>
-                        <svg
-                            class="icon-dark"
-                            viewBox="0 0 24 24"
-                            width="14"
-                            height="14"
-                            fill="currentColor"
-                            aria-hidden="true"
-                        >
-                            <path
-                                d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
-                            ></path>
-                        </svg>
-                    </button>
+                <div class="console-body" id="console-body"></div>
+            </div>
+        </section>
+        <div class="editor-divider" id="editor-divider"></div>
+        <section class="pane preview-pane">
+            <div class="pane-label">
+                <span>Preview</span>
+                <div class="preview-controls">
+                    <div class="preview-zoom">
+                        <span id="zoom-level">100%</span>
+                        <button type="button" id="zoom-reset" class="btn btn-small">
+                            Reset
+                        </button>
+                    </div>
                 </div>
             </div>
-        </header>
-        <div class="editor-layout">
-            <section class="pane code-pane">
-                <div class="pane-label">
-                    <span>Editor</span>
-                </div>
-                <div class="editor-wrap" id="editor-container"></div>
-                <div class="console-panel" id="console-panel">
-                    <div class="console-header" id="console-toggle">
-                        <span class="console-icon" id="console-icon"></span>
-                        <span
-                            class="console-summary"
-                            id="console-summary"
-                        ></span>
-                        <span class="console-chevron" id="console-chevron"
-                            >&#9662;</span
-                        >
+            <div class="preview-split">
+                <div class="preview-wrap" id="preview-viewport">
+                    <div class="preview-stage" id="preview-stage">
+                        <img id="preview-img" class="preview-img" alt="rendered preview" draggable="false" />
+                        <div class="resize-preview" id="resize-preview"></div>
+                        <div class="resize-handle" id="resize-handle"></div>
                     </div>
-                    <div class="console-body" id="console-body"></div>
-                </div>
-            </section>
-            <section class="pane preview-pane">
-                <div class="pane-label">
-                    <span>Preview</span>
-                    <div class="preview-controls">
-                        <div class="preview-zoom">
-                            <span id="zoom-level">100%</span>
-                            <button
-                                type="button"
-                                id="zoom-reset"
-                                class="btn btn-small"
-                            >
-                                Reset
-                            </button>
+                    <div id="preview-status" class="preview-status"></div>
+                    <div class="width-panel" id="width-panel">
+                        <label class="width-toggle-row">
+                            <span class="width-toggle">
+                                <input type="checkbox" id="antialiasing-toggle" checked />
+                                <span>Antialiasing</span>
+                            </span>
+                        </label>
+                        <label class="width-toggle-row">
+                            <span class="width-toggle">
+                                <input type="checkbox" id="auto-width-toggle" checked />
+                                <span>Auto width</span>
+                            </span>
+                            <input id="width-value" class="hidden" type="number" min="1" max="2000" disabled />
+                        </label>
+                        <div class="width-hint" id="width-hint">
+                            drag placard border to resize
                         </div>
                     </div>
                 </div>
-                <div class="preview-split">
-                    <div class="preview-wrap" id="preview-viewport">
-                        <div class="preview-stage" id="preview-stage">
-                            <img
-                                id="preview-img"
-                                class="preview-img"
-                                alt="rendered preview"
-                                draggable="false"
-                            />
-                            <div class="resize-preview" id="resize-preview"></div>
-                            <div class="resize-handle" id="resize-handle"></div>
-                        </div>
-                        <div id="preview-status" class="preview-status"></div>
-                        <div class="width-panel" id="width-panel">
-                            <label class="width-toggle-row">
-                                <span class="width-toggle">
-                                    <input
-                                        type="checkbox"
-                                        id="auto-width-toggle"
-                                        checked
-                                    />
-                                    <span>Auto width</span>
-                                </span>
-                                <input
-                                    id="width-value"
-                                    class="hidden"
-                                    type="number"
-                                    min="1"
-                                    max="2000"
-                                    disabled
-                                />
-                            </label>
-                            <div class="width-hint" id="width-hint">
-                                drag placard border to resize
-                            </div>
-                        </div>
+                <div class="split-divider"></div>
+                <div class="browser-pane" id="browser-pane">
+                    <div class="pane-label browser-label" id="browser-toggle">
+                        <span>Browser render</span>
+                        <span id="browser-width-readout" class="dim-readout"></span>
+                        <span class="browser-chevron" id="browser-chevron">&#9650;</span>
                     </div>
-                    <div class="split-divider"></div>
-                    <div class="browser-pane" id="browser-pane">
-                        <div
-                            class="pane-label browser-label"
-                            id="browser-toggle"
-                        >
-                            <span>Browser render</span>
-                            <span
-                                id="browser-width-readout"
-                                class="dim-readout"
-                            ></span>
-                            <span
-                                class="browser-chevron"
-                                id="browser-chevron"
-                                >&#9650;</span
-                            >
-                        </div>
-                        <div class="browser-frame-wrap">
-                            <iframe
-                                id="browser-frame"
-                                class="browser-frame"
-                                title="browser-rendered comparison"
-                            ></iframe>
-                        </div>
+                    <div class="browser-frame-wrap">
+                        <iframe id="browser-frame" class="browser-frame" title="browser-rendered comparison"></iframe>
                     </div>
                 </div>
-            </section>
-        </div>
-        <script src="/sandbox/editor.js"></script>
-        <script src="/sandbox/script.js"></script>
-    </body>
+            </div>
+        </section>
+    </div>
+    <script src="/sandbox/editor.js"></script>
+    <script src="/sandbox/script.js"></script>
+</body>
+
 </html>

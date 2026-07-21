@@ -1,12 +1,16 @@
 (function () {
     "use strict";
 
+    var editorLayout = document.querySelector(".editor-layout");
+    var codePane = document.querySelector(".code-pane");
+    var editorDivider = document.getElementById("editor-divider");
     var previewImg = document.getElementById("preview-img");
     var previewStatus = document.getElementById("preview-status");
     var previewViewport = document.getElementById("preview-viewport");
     var previewStage = document.getElementById("preview-stage");
     var zoomLevelEl = document.getElementById("zoom-level");
     var zoomResetBtn = document.getElementById("zoom-reset");
+    var antialiasingToggle = document.getElementById("antialiasing-toggle");
     var autoWidthToggle = document.getElementById("auto-width-toggle");
     var widthValueInput = document.getElementById("width-value");
     var widthHint = document.getElementById("width-hint");
@@ -56,10 +60,14 @@
 
     function renderUrl() {
         var format = formatSelect.value || "webp";
-        var query = "";
+        var params = [];
         if (!autoWidthToggle.checked && widthValueInput.value) {
-            query = "?width=" + encodeURIComponent(widthValueInput.value);
+            params.push("width=" + encodeURIComponent(widthValueInput.value));
         }
+        if (!antialiasingToggle.checked) {
+            params.push("antialiasing=0");
+        }
+        var query = params.length ? "?" + params.join("&") : "";
         return "/r/" + base64url(editor.getValue()) + "." + format + query;
     }
 
@@ -185,7 +193,7 @@
                 doc.body ? doc.body.scrollHeight : 0,
             );
             browserFrame.style.height = height + "px";
-        } catch (e) {}
+        } catch (e) { }
     }
 
     browserFrame.addEventListener("load", updateBrowserFrameHeight);
@@ -319,6 +327,8 @@
         }
     }
 
+    antialiasingToggle.addEventListener("change", updatePreview);
+
     autoWidthToggle.addEventListener("change", function () {
         setAutoWidth(autoWidthToggle.checked);
         updatePreview();
@@ -363,11 +373,47 @@
 
     setAutoWidth(autoWidthToggle.checked);
 
+    var MIN_CODE_PANE_WIDTH = 240;
+    var MIN_PREVIEW_PANE_WIDTH = 240;
+    var isDraggingDivider = false;
+    var dividerStartX = 0;
+    var codePaneStartWidth = 0;
+
+    editorDivider.addEventListener("mousedown", function (e) {
+        if (e.button !== 0) return;
+        e.preventDefault();
+        isDraggingDivider = true;
+        dividerStartX = e.clientX;
+        codePaneStartWidth = codePane.getBoundingClientRect().width;
+        editorDivider.classList.add("dragging");
+        document.body.style.cursor = "ew-resize";
+    });
+
+    window.addEventListener("mousemove", function (e) {
+        if (!isDraggingDivider) return;
+        var layoutWidth = editorLayout.getBoundingClientRect().width;
+        var maxCodeWidth =
+            layoutWidth - MIN_PREVIEW_PANE_WIDTH - editorDivider.offsetWidth;
+        var newWidth = clamp(
+            codePaneStartWidth + (e.clientX - dividerStartX),
+            MIN_CODE_PANE_WIDTH,
+            Math.max(MIN_CODE_PANE_WIDTH, maxCodeWidth),
+        );
+        codePane.style.flex = "0 0 " + newWidth + "px";
+    });
+
+    window.addEventListener("mouseup", function () {
+        if (!isDraggingDivider) return;
+        isDraggingDivider = false;
+        editorDivider.classList.remove("dragging");
+        document.body.style.cursor = "";
+    });
+
     var debounceTimer = null;
     function scheduleUpdate() {
         try {
             localStorage.setItem(STORAGE_KEY, editor.getValue());
-        } catch (e) {}
+        } catch (e) { }
         if (debounceTimer) clearTimeout(debounceTimer);
         debounceTimer = setTimeout(function () {
             updatePreview();
@@ -394,7 +440,7 @@
     var initial = null;
     try {
         initial = localStorage.getItem(STORAGE_KEY);
-    } catch (e) {}
+    } catch (e) { }
 
     function isLightTheme() {
         return document.documentElement.getAttribute("data-theme") === "light";
