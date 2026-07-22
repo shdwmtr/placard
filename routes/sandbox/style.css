@@ -621,3 +621,81 @@ body {
 :root[data-theme="light"] .console-line.error {
     color: #c0392b;
 }
+
+.cm-color-flyout {
+    position: fixed;
+    z-index: 1000;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.cm-color-flyout-sv {
+    position: relative;
+    width: 260px;
+    height: 180px;
+    border-radius: 6px;
+    background-image:
+        linear-gradient(to top, #000, transparent),
+        linear-gradient(to right, #fff, transparent);
+    cursor: crosshair;
+}
+
+.cm-color-flyout-hue {
+    position: relative;
+    width: 260px;
+    height: 18px;
+    margin-top: 12px;
+    border-radius: 9px;
+    background-image: linear-gradient(
+        to right,
+        #f00,
+        #ff0,
+        #0f0,
+        #0ff,
+        #00f,
+        #f0f,
+        #f00
+    );
+    cursor: pointer;
+}
+
+.cm-color-flyout-thumb {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+.cm-color-flyout-hex-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.cm-color-flyout-preview {
+    width: 34px;
+    height: 34px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+.cm-color-flyout-hex {
+    flex: 1;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 10px;
+    font-family: var(--font-mono);
+    font-size: 14px;
+}

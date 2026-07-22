@@ -1,0 +1,17 @@
+[package]
+name = "placard-payload"
+version = "0.1.0"
+edition = "2024"
+description = "Encodes and decodes the compressed HTML payload embedded in /r/<payload> badge URLs"
+license = "Apache-2.0"
+repository = "https://github.com/shdwmtr/placard"
+
+[dependencies]
+base64 = "0.22"
+
+# The pure-Rust zlib-rs backend is required for preset-dictionary support --
+# the default rust_backend (miniz_oxide) doesn't expose set_dictionary.
+flate2 = { version = "1.1", default-features = false, features = ["zlib-rs"] }
+
+[dev-dependencies]
+crc32fast = "1"

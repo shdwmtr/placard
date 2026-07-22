@@ -113,6 +113,7 @@ checksum = "843fba2746e448b37e26a819579957415c8cef339bf08564fe8b7ddbd959573c"
 dependencies = [
  "crc32fast",
  "miniz_oxide",
+ "zlib-rs",
 ]
 
 [[package]]
@@ -300,6 +301,7 @@ name = "placard"
 version = "0.1.0"
 dependencies = [
  "placard-font",
+ "placard-payload",
  "placard-raster",
  "placard-render",
  "ureq",
@@ -320,8 +322,8 @@ version = "0.1.0"
 name = "placard-docs-server"
 version = "0.1.0"
 dependencies = [
- "base64",
  "placard-font",
+ "placard-payload",
  "placard-render",
  "serde_json",
  "ureq",
@@ -355,6 +357,15 @@ dependencies = [
  "placard-layout",
  "placard-raster",
  "placard-style",
+]
+
+[[package]]
+name = "placard-payload"
+version = "0.1.0"
+dependencies = [
+ "base64",
+ "crc32fast",
+ "flate2",
 ]
 
 [[package]]
@@ -772,6 +783,12 @@ name = "zeroize"
 version = "1.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e13c156562582aa81c60cb29407084cdb54c4164760106ab78e6c5b0858cf64e"
+
+[[package]]
+name = "zlib-rs"
+version = "0.6.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "977347db8caa080403f6b6b7c1cda9479a8e869316f7e13a59b19076a40f94e3"
 
 [[package]]
 name = "zmij"

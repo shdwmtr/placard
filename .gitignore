@@ -2,3 +2,4 @@ target/
 TODO.md
 /scripts
 /fonts
+node_modules/

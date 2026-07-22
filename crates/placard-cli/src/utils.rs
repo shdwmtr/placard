@@ -1,5 +1,3 @@
-const URL_SAFE_ALPHABET: &[u8; 64] =
-    b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 const STANDARD_ALPHABET: &[u8; 64] =
     b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
@@ -51,10 +49,6 @@ fn encode_with(data: &[u8], alphabet: &[u8; 64], pad: bool) -> String {
     out
 }
 
-pub fn encode(data: &[u8]) -> String {
-    encode_with(data, URL_SAFE_ALPHABET, false)
-}
-
 pub fn encode_standard(data: &[u8]) -> String {
     encode_with(data, STANDARD_ALPHABET, true)
 }
@@ -62,17 +56,6 @@ pub fn encode_standard(data: &[u8]) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn rfc4648_vectors_unpadded() {
-        assert_eq!(encode(b""), "");
-        assert_eq!(encode(b"f"), "Zg");
-        assert_eq!(encode(b"fo"), "Zm8");
-        assert_eq!(encode(b"foo"), "Zm9v");
-        assert_eq!(encode(b"foob"), "Zm9vYg");
-        assert_eq!(encode(b"fooba"), "Zm9vYmE");
-        assert_eq!(encode(b"foobar"), "Zm9vYmFy");
-    }
 
     #[test]
     fn rfc4648_vectors_standard_padded() {
@@ -89,11 +72,5 @@ mod tests {
     fn standard_uses_plus_and_slash_not_dash_and_underscore() {
         assert_eq!(encode_standard(&[0xFF, 0xFF, 0xFF]), "////");
         assert_eq!(encode_standard(&[0xF8]), "+A==");
-    }
-
-    #[test]
-    fn url_safe_substitution() {
-        assert_eq!(encode(&[0xFF, 0xFF, 0xFF]), "____");
-        assert_eq!(encode(&[0xF8]), "-A");
     }
 }

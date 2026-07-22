@@ -82,9 +82,11 @@ impl LayoutTree {
     /// max over every box's edge, the way `max_extent_y` works, would just
     /// report back the width it was built against. This only counts boxes
     /// that paint something (text, an inline background, or a block with a
-    /// background/border) or were given an explicit width by the author,
-    /// skipping the invisible auto-sized wrapper `div`s that merely fill
-    /// available space.
+    /// background/border), were given an explicit width by the author, or
+    /// have right padding of their own (real box-model space a flex/grid
+    /// item shrink-wraps to, as opposed to a plain block's fill-driven
+    /// width), skipping the invisible auto-sized wrapper `div`s that merely
+    /// fill available space.
     pub fn max_extent_x(&self) -> f32 {
         self.boxes
             .iter()
@@ -100,6 +102,7 @@ impl LayoutTree {
                 b.style.background_color.a > 0
                     || b.style.border_width.iter().any(|&w| w > 0.0)
                     || b.style.width.is_some()
+                    || b.style.padding[1] > 0.0
             }
         }
     }

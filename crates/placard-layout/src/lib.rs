@@ -432,6 +432,28 @@ mod tests {
     }
 
     #[test]
+    fn max_extent_x_includes_a_flex_items_own_padding_even_without_paint() {
+        let font = test_font();
+        // Unlike a plain block, a flex item with no explicit width
+        // shrink-wraps to its own content -- so its padding is real,
+        // content-driven space, not an artifact of filling a wider-than-
+        // needed containing block, and must count even with no background,
+        // border, or content of its own to paint.
+        let dom = placard_html::parse(
+            "<body style=\"margin: 0\"><div class=\"row\"><div class=\"a\"></div></div></body>",
+        );
+        let sheet = placard_css::parse(
+            "div.row { display: flex; }
+             div.a { padding: 10px; }",
+        );
+        let styles = placard_style::compute(&dom, &sheet);
+        let width = measure_document_width(&dom, &styles, &font);
+        let tree = build(&dom, &styles, &font, width);
+
+        assert_eq!(tree.max_extent_x(), 20.0);
+    }
+
+    #[test]
     fn measure_intrinsic_width_of_flex_column_takes_the_widest_item() {
         let font = test_font();
         let dom = placard_html::parse(

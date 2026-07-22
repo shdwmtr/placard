@@ -1,12 +1,12 @@
 mod fetcher;
 mod http;
 
-use base64::Engine as _;
 use http::{Request, write_response, write_response_with_headers};
 use placard_font::{Font, FontFamily, FontSet, FontStyle, FontWeight};
 use placard_render::{CachingFetcher, Diagnostic, Fetcher, ImageFormat, MemoryBudget, Severity};
 use std::io::BufReader;
 use std::net::{TcpListener, TcpStream};
+use std::ops::Deref;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
@@ -21,7 +21,6 @@ const MAX_CONCURRENT_CONNECTIONS: usize = 256;
 const MEMORY_BUDGET_BYTES: u64 = 2 * 1024 * 1024 * 1024;
 const MEMORY_WAIT_TIMEOUT: Duration = Duration::from_secs(4);
 
-const MAX_DECODED_SIZE: usize = 64 * 1024;
 const MIN_WIDTH: f32 = 1.0;
 const MAX_WIDTH: f32 = 2000.0;
 
@@ -160,8 +159,27 @@ fn scan_named_fonts(dir: &Path, fonts: &mut FontSet) {
     }
 }
 
-fn make_fetcher() -> CachingFetcher<fetcher::UreqFetcher> {
-    CachingFetcher::new(fetcher::UreqFetcher::new(), CONNECTOR_CACHE_TTL)
+fn make_fetcher(
+    render_count: Arc<RenderCounter>,
+) -> LoopbackFetcher<CachingFetcher<fetcher::UreqFetcher>, Arc<RenderCounter>> {
+    LoopbackFetcher {
+        inner: CachingFetcher::new(fetcher::UreqFetcher::new(), CONNECTOR_CACHE_TTL),
+        render_count,
+    }
+}
+
+struct LoopbackFetcher<F: Fetcher, R: Deref<Target = RenderCounter> + Send + Sync> {
+    inner: F,
+    render_count: R,
+}
+
+impl<F: Fetcher, R: Deref<Target = RenderCounter> + Send + Sync> Fetcher for LoopbackFetcher<F, R> {
+    fn fetch(&self, url: &str) -> Result<Vec<u8>, String> {
+        if url == placard_render::PLACARDS_RENDERED_URL {
+            return Ok(self.render_count.get().to_string().into_bytes());
+        }
+        self.inner.fetch(url)
+    }
 }
 
 struct RenderCounter {
@@ -300,7 +318,53 @@ fn presets_json() -> Vec<u8> {
 
 #[cfg(test)]
 mod tests {
-    use super::presets_json;
+    use super::{Fetcher, LoopbackFetcher, RenderCounter, presets_json};
+    use std::path::PathBuf;
+    use std::sync::atomic::AtomicU64;
+
+    #[test]
+    fn placards_rendered_url_is_answered_locally_without_touching_the_network() {
+        struct PanicFetcher;
+        impl Fetcher for PanicFetcher {
+            fn fetch(&self, _url: &str) -> Result<Vec<u8>, String> {
+                panic!("network fetcher should not be called for the self-referential URL");
+            }
+        }
+
+        let render_count = RenderCounter {
+            count: AtomicU64::new(42),
+            path: PathBuf::new(),
+        };
+        let fetcher = LoopbackFetcher {
+            inner: PanicFetcher,
+            render_count: &render_count,
+        };
+
+        let bytes = fetcher.fetch(placard_render::PLACARDS_RENDERED_URL).unwrap();
+        assert_eq!(bytes, b"42");
+    }
+
+    #[test]
+    fn other_urls_are_forwarded_to_the_inner_fetcher() {
+        struct EchoFetcher;
+        impl Fetcher for EchoFetcher {
+            fn fetch(&self, url: &str) -> Result<Vec<u8>, String> {
+                Ok(url.as_bytes().to_vec())
+            }
+        }
+
+        let render_count = RenderCounter {
+            count: AtomicU64::new(0),
+            path: PathBuf::new(),
+        };
+        let fetcher = LoopbackFetcher {
+            inner: EchoFetcher,
+            render_count: &render_count,
+        };
+
+        let bytes = fetcher.fetch("https://example.com/other").unwrap();
+        assert_eq!(bytes, b"https://example.com/other");
+    }
 
     #[test]
     fn includes_options_for_enum_params_and_omits_them_for_free_form_ones() {
@@ -404,9 +468,9 @@ fn render_route(
         }
     };
 
-    let decoded = match base64::engine::general_purpose::URL_SAFE_NO_PAD.decode(payload) {
+    let decoded = match placard_payload::decode(payload) {
         Ok(d) => d,
-        Err(_) => {
+        Err(placard_payload::DecodeError::InvalidBase64) => {
             let _ = write_response(
                 stream,
                 400,
@@ -416,18 +480,27 @@ fn render_route(
             );
             return;
         }
+        Err(placard_payload::DecodeError::TooLarge) => {
+            let _ = write_response(
+                stream,
+                413,
+                "Payload Too Large",
+                "text/plain",
+                b"decoded payload too large",
+            );
+            return;
+        }
+        Err(placard_payload::DecodeError::UnsupportedScheme | placard_payload::DecodeError::Corrupt) => {
+            let _ = write_response(
+                stream,
+                400,
+                "Bad Request",
+                "text/plain",
+                b"invalid or corrupt payload",
+            );
+            return;
+        }
     };
-
-    if decoded.len() > MAX_DECODED_SIZE {
-        let _ = write_response(
-            stream,
-            413,
-            "Payload Too Large",
-            "text/plain",
-            b"decoded payload too large",
-        );
-        return;
-    }
 
     let html = match String::from_utf8(decoded) {
         Ok(s) => s,
@@ -444,7 +517,10 @@ fn render_route(
     };
 
     let fresh_fetcher = if no_cache {
-        Some(fetcher::UreqFetcher::new())
+        Some(LoopbackFetcher {
+            inner: fetcher::UreqFetcher::new(),
+            render_count,
+        })
     } else {
         None
     };
@@ -642,9 +718,9 @@ fn handle_connection(
 fn run() -> Result<(), String> {
     let args = parse_args()?;
     let fonts = Arc::new(load_font_set(args.font.as_deref())?);
-    let fetcher: Arc<dyn Fetcher> = Arc::new(make_fetcher());
-    let budget = Arc::new(MemoryBudget::new(MEMORY_BUDGET_BYTES, MEMORY_WAIT_TIMEOUT));
     let render_count = Arc::new(RenderCounter::load()?);
+    let fetcher: Arc<dyn Fetcher> = Arc::new(make_fetcher(Arc::clone(&render_count)));
+    let budget = Arc::new(MemoryBudget::new(MEMORY_BUDGET_BYTES, MEMORY_WAIT_TIMEOUT));
 
     let listener =
         TcpListener::bind(("0.0.0.0", args.port)).map_err(|e| format!("bind failed: {e}"))?;

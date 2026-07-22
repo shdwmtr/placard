@@ -10,6 +10,7 @@ repository = "https://github.com/shdwmtr/placard"
 placard-render = { path = "../placard-render", version = "0.1.0" }
 placard-raster = { path = "../placard-raster", version = "0.1.0" }
 placard-font = { path = "../placard-font", version = "0.1.0" }
+placard-payload = { path = "../placard-payload", version = "0.1.0" }
 
 # The one deliberate exception
 ureq = { version = "=3.3.0", default-features = false, features = ["native-tls", "gzip"] }

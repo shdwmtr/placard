@@ -5,6 +5,7 @@ mod services;
 
 pub use services::all_presets;
 pub use services::meta::{Param, PresetMeta, param_options};
+pub use services::placard::PLACARDS_RENDERED_URL;
 
 use placard_html::{Dom, NodeId};
 use std::collections::HashMap;

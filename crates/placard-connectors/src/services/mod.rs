@@ -102,6 +102,7 @@ mod packagecontrol;
 mod packagist;
 mod pingpong;
 mod piwheels;
+pub(crate) mod placard;
 mod polymart;
 mod powershellgallery;
 #[path = "pub/mod.rs"]
@@ -251,6 +252,7 @@ pub fn all_presets() -> impl Iterator<Item = &'static meta::PresetMeta> {
         packagecontrol::PRESETS,
         pingpong::PRESETS,
         piwheels::PRESETS,
+        placard::PRESETS,
         powershellgallery::PRESETS,
         pulsar::PRESETS,
         python::PRESETS,
@@ -352,7 +354,7 @@ mod tests {
 
     #[test]
     fn registry_has_the_expected_preset_count() {
-        assert_eq!(all_presets().count(), 383);
+        assert_eq!(all_presets().count(), 384);
     }
 
     #[test]

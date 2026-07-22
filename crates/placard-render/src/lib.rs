@@ -9,7 +9,7 @@ use std::time::{Duration, Instant};
 
 pub use format::{ImageFormat, format_for_path};
 pub use placard_connectors::{
-    CachingFetcher, Fetcher, Param, PresetMeta, all_presets, param_options,
+    CachingFetcher, Fetcher, PLACARDS_RENDERED_URL, Param, PresetMeta, all_presets, param_options,
 };
 pub use placard_style::{Diagnostic, Severity};
 

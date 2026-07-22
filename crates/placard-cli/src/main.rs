@@ -462,7 +462,7 @@ fn run_url() -> Result<(), String> {
 
     let html = std::fs::read(&args.input)
         .map_err(|e| format!("failed to read {}: {e}", args.input.display()))?;
-    let encoded = utils::encode(&html);
+    let encoded = placard_payload::encode(&html);
 
     let base = args.base_url.trim_end_matches('/');
     let mut url = format!("{base}/r/{encoded}.{}", args.format.extension());
