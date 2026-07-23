@@ -102,16 +102,42 @@ impl Canvas {
     }
 
     pub fn fill(&mut self, color: Color) {
-        for y in 0..self.height {
-            for x in 0..self.width {
-                self.set_pixel(x, y, color);
-            }
+        for pixel in self.pixels.chunks_exact_mut(4) {
+            pixel[0] = color.r;
+            pixel[1] = color.g;
+            pixel[2] = color.b;
+            pixel[3] = color.a;
         }
     }
 
     pub fn fill_rect(&mut self, x0: u32, y0: u32, w: u32, h: u32, color: Color) {
-        for y in y0..(y0 + h).min(self.height) {
-            for x in x0..(x0 + w).min(self.width) {
+        if color.a == 0 {
+            return;
+        }
+        let x1 = (x0 + w).min(self.width);
+        let y1 = (y0 + h).min(self.height);
+        if x0 >= x1 || y0 >= y1 {
+            return;
+        }
+
+        if color.a == 255 {
+            let row_width = self.width as usize;
+            for y in y0..y1 {
+                let row_start = y as usize * row_width;
+                let start = (row_start + x0 as usize) * 4;
+                let end = (row_start + x1 as usize) * 4;
+                for pixel in self.pixels[start..end].chunks_exact_mut(4) {
+                    pixel[0] = color.r;
+                    pixel[1] = color.g;
+                    pixel[2] = color.b;
+                    pixel[3] = color.a;
+                }
+            }
+            return;
+        }
+
+        for y in y0..y1 {
+            for x in x0..x1 {
                 self.blend_pixel(x, y, color);
             }
         }

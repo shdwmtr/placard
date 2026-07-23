@@ -1,647 +1,558 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Placard</title>
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-        <link rel="stylesheet" href="/assets/theme.css" />
-        <link rel="stylesheet" href="/style.css" />
-        <script src="/assets/theme.js"></script>
-    </head>
 
-    <body>
-        <header class="topbar">
-            <div class="topbar-inner">
-                <div class="nav-left">
-                    <div class="brand">
-                        <a href="/">
-                            <span class="mark"
-                                ><img
-                                    src="/favicon.svg"
-                                    alt=""
-                                    width="20"
-                                    height="20"
-                            /></span>
-                            <span class="sep">/</span>
-                            Placard
-                        </a>
-                    </div>
-                    <nav class="nav-links">
-                        <a href="/connectors">Documentation</a>
-                        <a
-                            href="https://crates.io/crates/placard"
-                            target="_blank"
-                            rel="noopener"
-                            >crates.io<span class="ext">&#8599;</span></a
-                        >
-                    </nav>
-                </div>
-                <div class="nav-right">
-                    <button
-                        type="button"
-                        class="theme-toggle"
-                        data-theme-toggle
-                        title="Toggle theme"
-                        aria-label="Toggle theme"
-                    >
-                        <svg
-                            class="icon-light"
-                            viewBox="0 0 24 24"
-                            width="14"
-                            height="14"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            aria-hidden="true"
-                        >
-                            <circle cx="12" cy="12" r="4"></circle>
-                            <path
-                                d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"
-                            ></path>
-                        </svg>
-                        <svg
-                            class="icon-dark"
-                            viewBox="0 0 24 24"
-                            width="14"
-                            height="14"
-                            fill="currentColor"
-                            aria-hidden="true"
-                        >
-                            <path
-                                d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
-                            ></path>
-                        </svg>
-                    </button>
-                    <a
-                        class="cta dark"
-                        href="https://github.com/shdwmtr/placard"
-                        target="_blank"
-                        rel="noopener"
-                    >
-                        <svg
-                            class="gh-icon"
-                            viewBox="0 0 16 16"
-                            width="14"
-                            height="14"
-                            aria-hidden="true"
-                        >
-                            <path
-                                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"
-                            />
-                        </svg>
-                        GitHub
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Placard</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="stylesheet" href="/assets/theme.css" />
+    <link rel="stylesheet" href="/style.css" />
+    <link rel="stylesheet" href="/sandbox/style.css" />
+    <script src="/assets/theme.js"></script>
+</head>
+
+<body>
+    <header class="topbar">
+        <div class="topbar-inner">
+            <div class="nav-left">
+                <div class="brand">
+                    <a href="/">
+                        <span class="mark"><img src="/favicon.svg" alt="" width="20" height="20" /></span>
+                        Placard
                     </a>
-                    <a class="cta primary" href="/sandbox">Enter sandbox</a>
                 </div>
-            </div>
-        </header>
-
-        <header class="hero">
-            <div class="render-wrap">
-                <h1 class="hero-header">Compile the web into a badge</h1>
-                <p class="hero-description">
-                    Placard enables you to create
-                    <strong>high-quality rasterized badges</strong> with the
-                    power of HTML and CSS.
-                </p>
-            </div>
-            <div class="caption">
-                <div class="cta-row">
-                    <a class="cta primary" href="/sandbox"
-                        >Go to sandbox &rarr;</a
-                    >
-                    <a class="cta secondary" href="/connectors"
-                        >Browse service connectors &rarr;</a
-                    >
-                </div>
-                <p class="cmd-hint">
-                    <code>GET /r/&lt;payload&gt;.webp?width=&lt;n&gt;</code>
-                </p>
-            </div>
-        </header>
-
-        <div class="wrap">
-            <section id="what-is-placard" class="showcase">
-                <div class="showcase-grid">
-                    <div class="showcase-intro">
-                        <h2>Your README just got better.</h2>
-                        <p>
-                            Static badge generators give everyone the same tired
-                            template. Placard renders real HTML and CSS instead,
-                            so your README, PR, or dashboard can look like your
-                            project, not a boilerplate shield.
-                        </p>
-                        <div class="cta-row">
-                            <a class="cta primary" href="#get-started"
-                                >Get started</a
-                            >
-                            <a class="cta secondary" href="/connectors"
-                                >See examples</a
-                            >
-                        </div>
-                    </div>
-                    <div class="showcase-windows">
-                        <div class="window window-code">
-                            <div class="window-titlebar">
-                                <span class="window-dots">
-                                    <span class="dot dot-red"></span>
-                                    <span class="dot dot-yellow"></span>
-                                    <span class="dot dot-green"></span>
-                                </span>
-                                <span class="window-tab">badge.html</span>
-                            </div>
-                            <div class="window-body">
-                                <div
-                                    class="code-viewer"
-                                    id="hero-code-viewer"
-                                ></div>
-                            </div>
-                        </div>
-                        <div class="window window-preview">
-                            <div class="window-titlebar">
-                                <span class="window-dots">
-                                    <span class="dot dot-red"></span>
-                                    <span class="dot dot-yellow"></span>
-                                    <span class="dot dot-green"></span>
-                                </span>
-                                <span class="window-tab">Preview</span>
-                            </div>
-                            <div class="window-body">
-                                <img
-                                    alt="a live GitHub stars badge for shdwmtr/placard, rendered by Placard"
-                                    width="95"
-                                    height="33"
-                                    src="/r/PGJvZHk-CiAgICA8ZGl2IGNsYXNzPSJ3cmFwIj4KICAgICAgICA8c3BhbiBjbGFzcz0ibGFiZWwiPnN0YXJzPC9zcGFuPgogICAgICAgIDxzcGFuCiAgICAgICAgICAgIGNsYXNzPSJ2YWx1ZSIKICAgICAgICAgICAgZGF0YS1wcmVzZXQ9ImdpdGh1Yi1zdGFycyIKICAgICAgICAgICAgZGF0YS1vd25lcj0ic2hkd210ciIKICAgICAgICAgICAgZGF0YS1yZXBvPSJwbGFjYXJkIgogICAgICAgID4wPC9zcGFuPgogICAgPC9kaXY-CjwvYm9keT4KPHN0eWxlPgogICAgYm9keSB7IG1hcmdpbjogMDsgYmFja2dyb3VuZDogIzAwMDsgfQogICAgLndyYXAgeyBkaXNwbGF5OiBmbGV4OyBmb250LWZhbWlseTogbW9ub3NwYWNlOyBmb250LXNpemU6IDE0cHg7IGZvbnQtd2VpZ2h0OiBib2xkOyB9CiAgICAubGFiZWwsIC52YWx1ZSB7IHBhZGRpbmc6IDhweCAxNHB4OyB9CiAgICAubGFiZWwgeyBiYWNrZ3JvdW5kOiAjMWExYTFhOyBjb2xvcjogI2ExYTFhMTsgfQogICAgLnZhbHVlIHsgYmFja2dyb3VuZDogIzJlYTA0MzsgY29sb3I6ICNmZmY7IH0KPC9zdHlsZT4K"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section id="connectors-showcase" class="connectors-showcase">
-                <div class="connectors-showcase-grid">
-                    <div class="connectors-showcase-intro">
-                        <h2>140+ connectors, ready to go</h2>
-                        <p>
-                            GitHub, npm, Docker Hub, PyPI, Discourse, Fedora,
-                            and dozens of other upstream services: Placard
-                            already knows how to talk to them. Drop a
-                            <code>data-preset</code> attribute on any element
-                            and the value gets fetched and baked into the image
-                            at render time.
-                        </p>
-                        <a class="cta secondary" href="/connectors"
-                            >Browse all connectors &rarr;</a
-                        >
-                    </div>
-                    <div class="connector-cards">
-                        <div class="connector-card focal">
-                            <img
-                                src="https://cdn.simpleicons.org/github/9a9a9a"
-                                alt=""
-                                width="26"
-                                height="26"
-                                loading="lazy"
-                            />
-                            <span>GitHub</span>
-                        </div>
-                        <div class="connector-card tier-4">
-                            <img
-                                src="https://cdn.simpleicons.org/gitlab/9a9a9a"
-                                alt=""
-                                width="26"
-                                height="26"
-                                loading="lazy"
-                            />
-                            <span>GitLab</span>
-                        </div>
-                        <div class="connector-card tier-3">
-                            <img
-                                src="https://cdn.simpleicons.org/gitea/9a9a9a"
-                                alt=""
-                                width="26"
-                                height="26"
-                                loading="lazy"
-                            />
-                            <span>Gitea</span>
-                        </div>
-                        <div class="connector-card tier-3">
-                            <img
-                                src="https://cdn.simpleicons.org/docker/9a9a9a"
-                                alt=""
-                                width="26"
-                                height="26"
-                                loading="lazy"
-                            />
-                            <span>Docker</span>
-                        </div>
-                        <div class="connector-card tier-2">
-                            <img
-                                src="https://cdn.simpleicons.org/npm/9a9a9a"
-                                alt=""
-                                width="26"
-                                height="26"
-                                loading="lazy"
-                            />
-                            <span>npm</span>
-                        </div>
-                        <div class="connector-card tier-2">
-                            <img
-                                src="https://cdn.simpleicons.org/pypi/9a9a9a"
-                                alt=""
-                                width="26"
-                                height="26"
-                                loading="lazy"
-                            />
-                            <span>PyPI</span>
-                        </div>
-                        <div class="connector-card tier-4">
-                            <img
-                                src="https://cdn.simpleicons.org/python/9a9a9a"
-                                alt=""
-                                width="26"
-                                height="26"
-                                loading="lazy"
-                            />
-                            <span>Python</span>
-                        </div>
-                        <div class="connector-card tier-3">
-                            <img
-                                src="https://cdn.simpleicons.org/nodedotjs/9a9a9a"
-                                alt=""
-                                width="26"
-                                height="26"
-                                loading="lazy"
-                            />
-                            <span>Node.js</span>
-                        </div>
-                        <div class="connector-card tier-3">
-                            <img
-                                src="https://cdn.simpleicons.org/homebrew/9a9a9a"
-                                alt=""
-                                width="26"
-                                height="26"
-                                loading="lazy"
-                            />
-                            <span>Homebrew</span>
-                        </div>
-                        <div class="connector-card tier-2">
-                            <img
-                                src="https://cdn.simpleicons.org/jenkins/9a9a9a"
-                                alt=""
-                                width="26"
-                                height="26"
-                                loading="lazy"
-                            />
-                            <span>Jenkins</span>
-                        </div>
-                        <div class="connector-card tier-2">
-                            <img
-                                src="https://cdn.simpleicons.org/circleci/9a9a9a"
-                                alt=""
-                                width="26"
-                                height="26"
-                                loading="lazy"
-                            />
-                            <span>CircleCI</span>
-                        </div>
-                        <div class="connector-card tier-1">
-                            <img
-                                src="https://cdn.simpleicons.org/travisci/9a9a9a"
-                                alt=""
-                                width="26"
-                                height="26"
-                                loading="lazy"
-                            />
-                            <span>Travis CI</span>
-                        </div>
-                        <div class="connector-card tier-3">
-                            <img
-                                src="https://cdn.simpleicons.org/codecov/9a9a9a"
-                                alt=""
-                                width="26"
-                                height="26"
-                                loading="lazy"
-                            />
-                            <span>Codecov</span>
-                        </div>
-                        <div class="connector-card tier-3">
-                            <img
-                                src="https://cdn.simpleicons.org/discourse/9a9a9a"
-                                alt=""
-                                width="26"
-                                height="26"
-                                loading="lazy"
-                            />
-                            <span>Discourse</span>
-                        </div>
-                        <div class="connector-card tier-2">
-                            <img
-                                src="https://cdn.simpleicons.org/mastodon/9a9a9a"
-                                alt=""
-                                width="26"
-                                height="26"
-                                loading="lazy"
-                            />
-                            <span>Mastodon</span>
-                        </div>
-                        <div class="connector-card tier-2">
-                            <img
-                                src="https://cdn.simpleicons.org/bluesky/9a9a9a"
-                                alt=""
-                                width="26"
-                                height="26"
-                                loading="lazy"
-                            />
-                            <span>Bluesky</span>
-                        </div>
-                        <div class="connector-card tier-1">
-                            <img
-                                src="https://cdn.simpleicons.org/wordpress/9a9a9a"
-                                alt=""
-                                width="26"
-                                height="26"
-                                loading="lazy"
-                            />
-                            <span>WordPress</span>
-                        </div>
-                        <div class="connector-card tier-1">
-                            <img
-                                src="https://cdn.simpleicons.org/netlify/9a9a9a"
-                                alt=""
-                                width="26"
-                                height="26"
-                                loading="lazy"
-                            />
-                            <span>Netlify</span>
-                        </div>
-                        <div class="connector-card tier-3">
-                            <img
-                                src="https://cdn.simpleicons.org/terraform/9a9a9a"
-                                alt=""
-                                width="26"
-                                height="26"
-                                loading="lazy"
-                            />
-                            <span>Terraform</span>
-                        </div>
-                        <div class="connector-card tier-2">
-                            <img
-                                src="https://cdn.simpleicons.org/fedora/9a9a9a"
-                                alt=""
-                                width="26"
-                                height="26"
-                                loading="lazy"
-                            />
-                            <span>Fedora</span>
-                        </div>
-                        <div class="connector-card tier-2">
-                            <img
-                                src="https://cdn.simpleicons.org/ubuntu/9a9a9a"
-                                alt=""
-                                width="26"
-                                height="26"
-                                loading="lazy"
-                            />
-                            <span>Ubuntu</span>
-                        </div>
-                        <div class="connector-card tier-1">
-                            <img
-                                src="https://cdn.simpleicons.org/archlinux/9a9a9a"
-                                alt=""
-                                width="26"
-                                height="26"
-                                loading="lazy"
-                            />
-                            <span>Arch Linux</span>
-                        </div>
-                        <div class="connector-card tier-1">
-                            <img
-                                src="https://cdn.simpleicons.org/debian/9a9a9a"
-                                alt=""
-                                width="26"
-                                height="26"
-                                loading="lazy"
-                            />
-                            <span>Debian</span>
-                        </div>
-                        <div class="connector-card tier-1">
-                            <img
-                                src="https://cdn.simpleicons.org/jetbrains/9a9a9a"
-                                alt=""
-                                width="26"
-                                height="26"
-                                loading="lazy"
-                            />
-                            <span>JetBrains</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section id="get-started" class="get-started">
-                <div class="get-started-grid">
-                    <div class="get-started-intro">
-                        <h2>Get started</h2>
-                        <p>
-                            Placard renders HTML and CSS straight to a PNG or
-                            WebP file, no browser, no headless Chrome, no
-                            JavaScript runtime on either end.
-                        </p>
-                        <a class="cta secondary" href="/connectors"
-                            >See more examples</a
-                        >
-                    </div>
-                    <div class="get-started-steps">
-                        <div class="get-started-step">
-                            <div class="get-started-step-head">
-                                <p>
-                                    Install the CLI and get a live render URL
-                                    from placard.cc in two lines.
-                                </p>
-                                <button
-                                    type="button"
-                                    class="cta primary small"
-                                    data-copy-target="#cli-snippet"
-                                >
-                                    Copy CLI code
-                                </button>
-                            </div>
-                            <div class="code-viewer" id="cli-snippet"></div>
-                        </div>
-                        <div class="get-started-step">
-                            <div class="get-started-step-head">
-                                <p>
-                                    Every input is just HTML and CSS, laid out
-                                    and rasterized exactly as written, no
-                                    proprietary templating language.
-                                </p>
-                                <button
-                                    type="button"
-                                    class="cta primary small"
-                                    data-copy-target="#html-snippet"
-                                >
-                                    Copy HTML code
-                                </button>
-                            </div>
-                            <div class="code-viewer" id="html-snippet"></div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <footer>
-                <span>Apache-2.0</span>
                 <span class="sep">/</span>
-                <span>
-                    &copy; 2026
-                    <a
-                        href="https://github.com/shdwmtr"
-                        target="_blank"
-                        rel="noopener"
-                        >Ethan Alexander</a
-                    >
-                </span>
-            </footer>
+                <nav class="nav-links">
+                    <a href="/connectors">Documentation</a>
+                    <span class="sep">/</span>
+                    <a href="https://crates.io/crates/placard" target="_blank" rel="noopener">crates.io<span
+                            class="ext">&#8599;</span></a>
+                </nav>
+            </div>
+            <div class="nav-right">
+                <button type="button" class="theme-toggle" data-theme-toggle title="Toggle theme"
+                    aria-label="Toggle theme">
+                    <svg class="icon-light" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="4"></circle>
+                        <path
+                            d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41">
+                        </path>
+                    </svg>
+                    <svg class="icon-dark" viewBox="0 0 24 24" width="14" height="14" fill="currentColor"
+                        aria-hidden="true">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+                <a class="cta dark" href="https://github.com/shdwmtr/placard" target="_blank" rel="noopener">
+                    <svg class="gh-icon" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+                        <path
+                            d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z" />
+                    </svg>
+                    GitHub
+                </a>
+                <a class="cta primary" href="#sandbox">Enter sandbox</a>
+            </div>
         </div>
-        <script src="/sandbox/editor.js"></script>
-        <script>
-            document
-                .querySelectorAll("[data-copy-target]")
-                .forEach(function (btn) {
-                    btn.addEventListener("click", function () {
-                        var target = document.querySelector(
-                            btn.getAttribute("data-copy-target"),
-                        );
-                        if (!target) return;
-                        navigator.clipboard
-                            .writeText(target.textContent)
-                            .then(function () {
-                                var original = btn.textContent;
-                                btn.textContent = "Copied!";
-                                setTimeout(function () {
-                                    btn.textContent = original;
-                                }, 1200);
-                            });
-                    });
-                });
+    </header>
 
-            (function () {
-                var cm = window.__cm;
-                if (!cm) return;
+    <header class="hero">
+        <div class="render-wrap">
+            <h1 class="hero-header">Compile the web into a badge</h1>
+            <p class="hero-description">
+                Placard enables you to create
+                <strong>high-quality rasterized badges</strong> with the
+                power of HTML and CSS.
+            </p>
+        </div>
+        <div class="caption">
+            <div class="cta-row">
+                <a class="cta primary" href="#sandbox">Go to sandbox &rarr;</a>
+                <a class="cta secondary" href="/connectors">Browse service connectors &rarr;</a>
+            </div>
+            <p class="cmd-hint">
+                <code>GET /r/&lt;payload&gt;.webp?width=&lt;n&gt;</code>
+            </p>
+        </div>
+    </header>
 
-                function isLightTheme() {
-                    return (
-                        document.documentElement.getAttribute("data-theme") ===
-                        "light"
+    <div class="wrap">
+
+         <section id="connectors-showcase" class="connectors-showcase">
+            <div class="connectors-showcase-grid">
+                <div class="connectors-showcase-intro">
+                    <h2>140+ connectors, ready to go</h2>
+                    <p>
+                        GitHub, npm, Docker Hub, PyPI, Discourse, Fedora,
+                        and dozens of other upstream services: Placard
+                        already knows how to talk to them. Drop a
+                        <code>data-preset</code> attribute on any element
+                        and the value gets fetched and baked into the image
+                        at render time.
+                    </p>
+                    <a class="cta secondary" href="/connectors">Browse all connectors &rarr;</a>
+                </div>
+                <div class="connector-cards">
+                    <div class="connector-card focal">
+                        <img src="https://cdn.simpleicons.org/github/9a9a9a" alt="" width="26" height="26"
+                            loading="lazy" />
+                        <span>GitHub</span>
+                    </div>
+                    <div class="connector-card tier-4">
+                        <img src="https://cdn.simpleicons.org/gitlab/9a9a9a" alt="" width="26" height="26"
+                            loading="lazy" />
+                        <span>GitLab</span>
+                    </div>
+                    <div class="connector-card tier-3">
+                        <img src="https://cdn.simpleicons.org/gitea/9a9a9a" alt="" width="26" height="26"
+                            loading="lazy" />
+                        <span>Gitea</span>
+                    </div>
+                    <div class="connector-card tier-3">
+                        <img src="https://cdn.simpleicons.org/docker/9a9a9a" alt="" width="26" height="26"
+                            loading="lazy" />
+                        <span>Docker</span>
+                    </div>
+                    <div class="connector-card tier-2">
+                        <img src="https://cdn.simpleicons.org/npm/9a9a9a" alt="" width="26" height="26"
+                            loading="lazy" />
+                        <span>npm</span>
+                    </div>
+                    <div class="connector-card tier-2">
+                        <img src="https://cdn.simpleicons.org/pypi/9a9a9a" alt="" width="26" height="26"
+                            loading="lazy" />
+                        <span>PyPI</span>
+                    </div>
+                    <div class="connector-card tier-4">
+                        <img src="https://cdn.simpleicons.org/python/9a9a9a" alt="" width="26" height="26"
+                            loading="lazy" />
+                        <span>Python</span>
+                    </div>
+                    <div class="connector-card tier-3">
+                        <img src="https://cdn.simpleicons.org/nodedotjs/9a9a9a" alt="" width="26" height="26"
+                            loading="lazy" />
+                        <span>Node.js</span>
+                    </div>
+                    <div class="connector-card tier-3">
+                        <img src="https://cdn.simpleicons.org/homebrew/9a9a9a" alt="" width="26" height="26"
+                            loading="lazy" />
+                        <span>Homebrew</span>
+                    </div>
+                    <div class="connector-card tier-2">
+                        <img src="https://cdn.simpleicons.org/jenkins/9a9a9a" alt="" width="26" height="26"
+                            loading="lazy" />
+                        <span>Jenkins</span>
+                    </div>
+                    <div class="connector-card tier-2">
+                        <img src="https://cdn.simpleicons.org/circleci/9a9a9a" alt="" width="26" height="26"
+                            loading="lazy" />
+                        <span>CircleCI</span>
+                    </div>
+                    <div class="connector-card tier-1">
+                        <img src="https://cdn.simpleicons.org/travisci/9a9a9a" alt="" width="26" height="26"
+                            loading="lazy" />
+                        <span>Travis CI</span>
+                    </div>
+                    <div class="connector-card tier-3">
+                        <img src="https://cdn.simpleicons.org/codecov/9a9a9a" alt="" width="26" height="26"
+                            loading="lazy" />
+                        <span>Codecov</span>
+                    </div>
+                    <div class="connector-card tier-3">
+                        <img src="https://cdn.simpleicons.org/discourse/9a9a9a" alt="" width="26" height="26"
+                            loading="lazy" />
+                        <span>Discourse</span>
+                    </div>
+                    <div class="connector-card tier-2">
+                        <img src="https://cdn.simpleicons.org/mastodon/9a9a9a" alt="" width="26" height="26"
+                            loading="lazy" />
+                        <span>Mastodon</span>
+                    </div>
+                    <div class="connector-card tier-2">
+                        <img src="https://cdn.simpleicons.org/bluesky/9a9a9a" alt="" width="26" height="26"
+                            loading="lazy" />
+                        <span>Bluesky</span>
+                    </div>
+                    <div class="connector-card tier-1">
+                        <img src="https://cdn.simpleicons.org/wordpress/9a9a9a" alt="" width="26" height="26"
+                            loading="lazy" />
+                        <span>WordPress</span>
+                    </div>
+                    <div class="connector-card tier-1">
+                        <img src="https://cdn.simpleicons.org/netlify/9a9a9a" alt="" width="26" height="26"
+                            loading="lazy" />
+                        <span>Netlify</span>
+                    </div>
+                    <div class="connector-card tier-3">
+                        <img src="https://cdn.simpleicons.org/terraform/9a9a9a" alt="" width="26" height="26"
+                            loading="lazy" />
+                        <span>Terraform</span>
+                    </div>
+                    <div class="connector-card tier-2">
+                        <img src="https://cdn.simpleicons.org/fedora/9a9a9a" alt="" width="26" height="26"
+                            loading="lazy" />
+                        <span>Fedora</span>
+                    </div>
+                    <div class="connector-card tier-2">
+                        <img src="https://cdn.simpleicons.org/ubuntu/9a9a9a" alt="" width="26" height="26"
+                            loading="lazy" />
+                        <span>Ubuntu</span>
+                    </div>
+                    <div class="connector-card tier-1">
+                        <img src="https://cdn.simpleicons.org/archlinux/9a9a9a" alt="" width="26" height="26"
+                            loading="lazy" />
+                        <span>Arch Linux</span>
+                    </div>
+                    <div class="connector-card tier-1">
+                        <img src="https://cdn.simpleicons.org/debian/9a9a9a" alt="" width="26" height="26"
+                            loading="lazy" />
+                        <span>Debian</span>
+                    </div>
+                    <div class="connector-card tier-1">
+                        <img src="https://cdn.simpleicons.org/jetbrains/9a9a9a" alt="" width="26" height="26"
+                            loading="lazy" />
+                        <span>JetBrains</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <section id="get-started" class="get-started">
+            <div class="get-started-grid">
+                <div class="get-started-intro">
+                    <h2>Get started</h2>
+                    <p>
+                        Placard renders HTML and CSS straight to a PNG or
+                        WebP file, no browser, no headless Chrome, no
+                        JavaScript runtime on either end.
+                    </p>
+                    <a class="cta secondary" href="/connectors">See more examples</a>
+                </div>
+                <div class="get-started-steps">
+                    <div class="get-started-step">
+                        <div class="get-started-step-head">
+                            <p>
+                                Install the CLI and get a live render URL
+                                from placard.cc in two lines.
+                            </p>
+                            <button type="button" class="cta primary small" data-copy-target="#cli-snippet">
+                                Copy CLI code
+                            </button>
+                        </div>
+                        <div class="code-viewer" id="cli-snippet"></div>
+                    </div>
+                    <div class="get-started-step">
+                        <div class="get-started-step-head">
+                            <p>
+                                Just HTML and CSS, no
+                                proprietary templating language.
+                            </p>
+                            <button type="button" class="cta primary small" data-copy-target="#html-snippet">
+                                Copy HTML code
+                            </button>
+                        </div>
+                        <div class="code-viewer" id="html-snippet"></div>
+                    </div>
+                </div>
+            </div>
+        </section>        
+    
+        <section id="sandbox" class="sandbox-showcase">
+            <div class="sandbox-showcase-head">
+                <h2>Try it in your browser</h2>
+                <p>
+                    Edit the HTML and CSS on the left, watch the
+                    rasterized output update on the right. No install
+                    required.
+                </p>
+            </div>
+            <div class="sandbox-window" id="sandbox-window" data-active-tab="editor" data-layout="tabs">
+                <div class="window-titlebar">
+                    <span class="window-dots">
+                        <span class="dot dot-red"></span>
+                        <span class="dot dot-yellow"></span>
+                        <span class="dot dot-green"></span>
+                    </span>
+                    <span class="window-tab">Placard Sandbox</span>
+                    <div class="window-titlebar-actions">
+                        <label class="ctrl">
+                            <select id="format">
+                                <option value="webp" selected>WebP</option>
+                                <option value="png">PNG</option>
+                            </select>
+                        </label>
+                        <button type="button" id="copy-url" class="btn">
+                            Copy render URL
+                        </button>
+                        <button type="button" id="maximize-toggle" class="btn btn-icon" title="Maximize"
+                            aria-label="Maximize editor">
+                            <svg class="icon-maximize" viewBox="0 0 24 24" width="14" height="14" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                aria-hidden="true">
+                                <path
+                                    d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M3 16v3a2 2 0 0 0 2 2h3">
+                                </path>
+                            </svg>
+                            <svg class="icon-restore" viewBox="0 0 24 24" width="14" height="14" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                aria-hidden="true">
+                                <path
+                                    d="M9 3v4a2 2 0 0 1-2 2H3M15 3v4a2 2 0 0 0 2 2h4M15 21v-4a2 2 0 0 1 2-2h4M9 21v-4a2 2 0 0 0-2-2H3">
+                                </path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="window-body">
+                    <div class="inner-tabbar">
+                        <div class="window-tabs">
+                            <button type="button" class="window-tab-btn active" data-tab="editor">
+                                EDITOR
+                            </button>
+                            <button type="button" class="window-tab-btn" data-tab="preview">
+                                PREVIEW
+                            </button>
+                        </div>
+                        <div class="inner-tabbar-right">
+                            <div class="preview-controls">
+                                <div class="preview-zoom">
+                                    <span id="zoom-level">100%</span>
+                                    <button type="button" id="zoom-reset" class="btn btn-small">
+                                        Reset
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="layout-toggle" role="group" aria-label="Editor layout">
+                                <button type="button" class="layout-btn active" data-layout="tabs" title="Tabs"
+                                    aria-label="Tabs layout">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                        aria-hidden="true">
+                                        <rect x="3" y="3" width="18" height="18" rx="1"></rect>
+                                        <line x1="3" y1="9" x2="21" y2="9"></line>
+                                    </svg>
+                                </button>
+                                <button type="button" class="layout-btn" data-layout="split" title="Split"
+                                    aria-label="Split layout">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                        aria-hidden="true">
+                                        <rect x="3" y="3" width="18" height="18" rx="1"></rect>
+                                        <line x1="12" y1="3" x2="12" y2="21"></line>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-panels">
+                        <div class="tab-panel editor-panel active" data-panel="editor">
+                            <div class="editor-wrap" id="editor-container"></div>
+                            <div class="console-panel" id="console-panel">
+                                <div class="console-header" id="console-toggle">
+                                    <span class="console-icon" id="console-icon"></span>
+                                    <span class="console-summary" id="console-summary"></span>
+                                    <span class="console-chevron" id="console-chevron">&#9662;</span>
+                                </div>
+                                <div class="console-body" id="console-body"></div>
+                            </div>
+                        </div>
+                        <div class="tab-panels-divider" id="tab-panels-divider"></div>
+                        <div class="tab-panel preview-panel" data-panel="preview">
+                            <div class="preview-split">
+                                <div class="preview-wrap" id="preview-viewport">
+                                    <div class="preview-stage" id="preview-stage">
+                                        <img id="preview-img" class="preview-img" alt="rendered preview"
+                                            draggable="false" />
+                                        <div class="resize-preview" id="resize-preview"></div>
+                                        <div class="resize-handle" id="resize-handle"></div>
+                                    </div>
+                                    <div id="preview-status" class="preview-status"></div>
+                                    <div class="width-panel" id="width-panel">
+                                        <label class="width-toggle-row">
+                                            <span class="width-toggle">
+                                                <input type="checkbox" id="antialiasing-toggle" checked />
+                                                <span>Antialiasing</span>
+                                            </span>
+                                        </label>
+                                        <label class="width-toggle-row">
+                                            <span class="width-toggle">
+                                                <input type="checkbox" id="auto-width-toggle" checked />
+                                                <span>Auto width</span>
+                                            </span>
+                                            <input id="width-value" class="hidden" type="number" min="1" max="2000"
+                                                disabled />
+                                        </label>
+                                        <div class="width-hint" id="width-hint">
+                                            drag placard border to resize
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="split-divider"></div>
+                                <div class="browser-pane" id="browser-pane">
+                                    <div class="pane-label browser-label" id="browser-toggle">
+                                        <span>Browser render</span>
+                                        <span id="browser-width-readout" class="dim-readout"></span>
+                                        <span class="browser-chevron" id="browser-chevron">&#9650;</span>
+                                    </div>
+                                    <div class="browser-frame-wrap">
+                                        <iframe id="browser-frame" class="browser-frame"
+                                            title="browser-rendered comparison"></iframe>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <span>Apache-2.0</span>
+            <span class="sep">/</span>
+            <span>
+                &copy; 2026
+                <a href="https://github.com/shdwmtr" target="_blank" rel="noopener">Ethan Alexander</a>
+            </span>
+        </footer>
+    </div>
+    <script src="/sandbox/editor.js"></script>
+    <script src="/sandbox/script.js"></script>
+    <script>
+        document
+            .querySelectorAll("[data-copy-target]")
+            .forEach(function (btn) {
+                btn.addEventListener("click", function () {
+                    var target = document.querySelector(
+                        btn.getAttribute("data-copy-target"),
                     );
-                }
+                    if (!target) return;
+                    navigator.clipboard
+                        .writeText(target.textContent)
+                        .then(function () {
+                            var original = btn.textContent;
+                            btn.textContent = "Copied!";
+                            setTimeout(function () {
+                                btn.textContent = original;
+                            }, 1200);
+                        });
+                });
+            });
 
-                var themeCompartment = new cm.Compartment();
-                var highlightCompartment = new cm.Compartment();
-                var views = [];
+        (function () {
+            var cm = window.__cm;
+            if (!cm) return;
 
-                function editorTheme() {
-                    return isLightTheme()
-                        ? cm.placardThemeLight
-                        : cm.placardThemeDark;
-                }
+            function isLightTheme() {
+                return (
+                    document.documentElement.getAttribute("data-theme") ===
+                    "light"
+                );
+            }
 
-                function editorHighlightStyle() {
-                    return isLightTheme()
-                        ? cm.defaultHighlightStyle
-                        : cm.oneDarkHighlightStyle;
-                }
+            var themeCompartment = new cm.Compartment();
+            var highlightCompartment = new cm.Compartment();
+            var views = [];
 
-                function mountCodeViewer(id, code) {
-                    var parent = document.getElementById(id);
-                    if (!parent) return;
-                    views.push(
-                        new cm.EditorView({
-                            doc: code,
-                            parent: parent,
-                            extensions: [
-                                cm.html(),
-                                highlightCompartment.of(
-                                    cm.syntaxHighlighting(
-                                        editorHighlightStyle(),
-                                    ),
+            function editorTheme() {
+                return isLightTheme()
+                    ? cm.placardThemeLight
+                    : cm.placardThemeDark;
+            }
+
+            function editorHighlightStyle() {
+                return isLightTheme()
+                    ? cm.defaultHighlightStyle
+                    : cm.oneDarkHighlightStyle;
+            }
+
+            function mountCodeViewer(id, code) {
+                var parent = document.getElementById(id);
+                if (!parent) return;
+                views.push(
+                    new cm.EditorView({
+                        doc: code,
+                        parent: parent,
+                        extensions: [
+                            cm.html(),
+                            highlightCompartment.of(
+                                cm.syntaxHighlighting(
+                                    editorHighlightStyle(),
                                 ),
-                                themeCompartment.of(editorTheme()),
-                                cm.EditorView.lineWrapping,
-                                cm.EditorState.readOnly.of(true),
-                                cm.EditorView.editable.of(false),
-                            ],
-                        }),
-                    );
-                }
-
-                mountCodeViewer(
-                    "hero-code-viewer",
-                    [
-                        "<body>",
-                        '    <div class="wrap">',
-                        '        <span class="label">stars</span>',
-                        "        <span",
-                        '            class="value"',
-                        '            data-preset="github-stars"',
-                        '            data-owner="shdwmtr"',
-                        '            data-repo="placard"',
-                        "        >0</span>",
-                        "    </div>",
-                        "</body>",
-                        "<style>",
-                        "    body { margin: 0; background: #000; }",
-                        "    .wrap { display: flex; font-family: monospace; font-size: 14px; font-weight: bold; }",
-                        "    .label, .value { padding: 8px 14px; }",
-                        "    .label { background: #1a1a1a; color: #a1a1a1; }",
-                        "    .value { background: #2ea043; color: #fff; }",
-                        "</style>",
-                    ].join("\n"),
+                            ),
+                            themeCompartment.of(editorTheme()),
+                            cm.EditorView.lineWrapping,
+                            cm.EditorState.readOnly.of(true),
+                            cm.EditorView.editable.of(false),
+                        ],
+                    }),
                 );
+            }
 
-                mountCodeViewer(
-                    "cli-snippet",
-                    [
-                        "$ cargo install placard",
-                        "$ placard url badge.html --base-url https://placard.cc",
-                    ].join("\n"),
-                );
+            mountCodeViewer(
+                "hero-code-viewer",
+                [
+                    "<body>",
+                    '    <div class="wrap">',
+                    '        <span class="label">stars</span>',
+                    "        <span",
+                    '            class="value"',
+                    '            data-preset="github-stars"',
+                    '            data-owner="shdwmtr"',
+                    '            data-repo="placard"',
+                    "        >0</span>",
+                    "    </div>",
+                    "</body>",
+                    "<style>",
+                    "    body { margin: 0; background: #000; }",
+                    "    .wrap { display: flex; font-family: monospace; font-size: 14px; font-weight: bold; }",
+                    "    .label, .value { padding: 8px 14px; }",
+                    "    .label { background: #1a1a1a; color: #a1a1a1; }",
+                    "    .value { background: #2ea043; color: #fff; }",
+                    "</style>",
+                ].join("\n"),
+            );
 
-                mountCodeViewer(
-                    "html-snippet",
-                    [
-                        "<body>",
-                        '    <div class="wrap">',
-                        '        <span class="label">build</span>',
-                        '        <span class="value">passing</span>',
-                        "    </div>",
-                        "</body>",
-                        "<style>",
-                        "    body { margin: 0; background: #000000; }",
-                        "    .wrap { display: flex; font-family: monospace; font-size: 14px; font-weight: bold; }",
-                        "    .label { background: #1a1a1a; color: #a1a1a1; padding: 8px 14px; }",
-                        "    .value { background: #2ea043; color: #ffffff; padding: 8px 14px; }",
-                        "</style>",
-                    ].join("\n"),
-                );
+            mountCodeViewer(
+                "cli-snippet",
+                [
+                    "$ cargo install placard",
+                    "$ placard url badge.html --base-url https://placard.cc",
+                ].join("\n"),
+            );
 
-                window.addEventListener("placard-theme-change", function () {
-                    var effects = [
-                        themeCompartment.reconfigure(editorTheme()),
-                        highlightCompartment.reconfigure(
-                            cm.syntaxHighlighting(editorHighlightStyle()),
-                        ),
-                    ];
-                    views.forEach(function (view) {
-                        view.dispatch({ effects: effects });
-                    });
+            mountCodeViewer(
+                "html-snippet",
+                [
+                    "<body>",
+                    '    <div class="wrap">',
+                    '        <span class="label">build</span>',
+                    '        <span class="value">passing</span>',
+                    "    </div>",
+                    "</body>",
+                    "<style>",
+                    "    body { margin: 0; background: #000000; }",
+                    "    .wrap { display: flex; font-family: monospace; font-size: 14px; font-weight: bold; }",
+                    "    .label { background: #1a1a1a; color: #a1a1a1; padding: 8px 14px; }",
+                    "    .value { background: #2ea043; color: #ffffff; padding: 8px 14px; }",
+                    "</style>",
+                ].join("\n"),
+            );
+
+            window.addEventListener("placard-theme-change", function () {
+                var effects = [
+                    themeCompartment.reconfigure(editorTheme()),
+                    highlightCompartment.reconfigure(
+                        cm.syntaxHighlighting(editorHighlightStyle()),
+                    ),
+                ];
+                views.forEach(function (view) {
+                    view.dispatch({effects: effects});
                 });
-            })();
-        </script>
-    </body>
+            });
+        })();
+    </script>
+</body>
+
 </html>

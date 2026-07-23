@@ -254,10 +254,6 @@ fn static_asset(path: &str) -> Option<(&'static str, &'static [u8])> {
             "text/javascript; charset=utf-8",
             include_bytes!("../routes/connectors/script.js"),
         )),
-        "/sandbox" => Some((
-            "text/html; charset=utf-8",
-            include_bytes!("../routes/sandbox/index.html"),
-        )),
         "/sandbox/style.css" => Some((
             "text/css; charset=utf-8",
             include_bytes!("../routes/sandbox/style.css"),

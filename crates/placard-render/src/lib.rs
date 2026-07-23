@@ -18,7 +18,46 @@ const MAX_DIAGNOSTICS: usize = 200;
 pub struct RenderOutput {
     pub canvas: Canvas,
     pub diagnostics: Vec<Diagnostic>,
+    pub timings: Timings,
     _reservation: Option<Reservation>,
+}
+
+#[derive(Debug, Clone, Copy, Default)]
+pub struct Timings {
+    pub html_parse: Duration,
+    pub connectors: Duration,
+    pub css_parse: Duration,
+    pub style_compute: Duration,
+    pub measure_width: Duration,
+    pub layout_build: Duration,
+    pub canvas_setup: Duration,
+    pub paint: Duration,
+}
+
+impl Timings {
+    pub fn total(&self) -> Duration {
+        self.html_parse
+            + self.connectors
+            + self.css_parse
+            + self.style_compute
+            + self.measure_width
+            + self.layout_build
+            + self.canvas_setup
+            + self.paint
+    }
+
+    pub fn stages(&self) -> [(&'static str, Duration); 8] {
+        [
+            ("html parse", self.html_parse),
+            ("connectors", self.connectors),
+            ("css parse", self.css_parse),
+            ("style compute", self.style_compute),
+            ("measure width", self.measure_width),
+            ("layout build", self.layout_build),
+            ("canvas setup", self.canvas_setup),
+            ("paint", self.paint),
+        ]
+    }
 }
 
 pub struct MemoryBudget {
@@ -166,29 +205,46 @@ pub fn render_to_canvas(
         ));
     }
 
+    let mut timings = Timings::default();
+
+    let t = Instant::now();
     let mut dom = placard_html::parse(html);
+    timings.html_parse = t.elapsed();
+
+    let t = Instant::now();
     let connector_failures = match fetcher {
         Some(fetcher) => placard_connectors::resolve(&mut dom, fetcher),
         None => Vec::new(),
     };
+    timings.connectors = t.elapsed();
+
+    let t = Instant::now();
     let css_text = extract_styles(&dom);
     let (stylesheet, mut diagnostics) = placard_css::parse_with_diagnostics(&css_text);
+    timings.css_parse = t.elapsed();
+
+    let t = Instant::now();
     let styles = placard_style::compute(&dom, &stylesheet);
+    diagnostics.extend(placard_style::lint(&dom, &stylesheet));
+    timings.style_compute = t.elapsed();
 
     diagnostics.extend(connector_failures.into_iter().map(Diagnostic::warning));
-    diagnostics.extend(placard_style::lint(&dom, &stylesheet));
     diagnostics.extend(font_diagnostics(&styles, fonts));
     diagnostics.truncate(MAX_DIAGNOSTICS);
 
     let auto_width = width.is_none();
 
+    let t = Instant::now();
     let layout_width = match width {
         Some(w) => w,
         None => placard_layout::measure_document_width(&dom, &styles, fonts).ceil(),
     };
+    timings.measure_width = t.elapsed();
     let layout_width = clamp_width(layout_width, min_width, max_width).max(1.0);
 
+    let t = Instant::now();
     let tree = placard_layout::build(&dom, &styles, fonts, layout_width);
+    timings.layout_build = t.elapsed();
 
     let height = tree.max_extent_y().round().max(1.0) as u32;
     let canvas_width = if auto_width {
@@ -214,12 +270,19 @@ pub fn render_to_canvas(
         None => None,
     };
 
+    let t = Instant::now();
     let mut canvas = Canvas::new(canvas_width, height);
     canvas.fill(Color::rgba(255, 255, 255, 255));
+    timings.canvas_setup = t.elapsed();
+
+    let t = Instant::now();
     placard_paint::paint(&mut canvas, &tree, fonts, antialiasing);
+    timings.paint = t.elapsed();
+
     Ok(RenderOutput {
         canvas,
         diagnostics,
+        timings,
         _reservation: reservation,
     })
 }

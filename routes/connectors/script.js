@@ -151,7 +151,7 @@
             ul.appendChild(el("li", null, [a]));
         });
         var summary = el("summary", null, [
-            el("span", { class: "s-name" }, [service]),
+            el("span", { class: "s-name" }, [service.replaceAll("_", " ")]),
             el("span", { class: "s-meta" }, [
                 el("span", { class: "count" }, [String(presets.length)]),
                 el("span", { class: "caret" }, ["›"]),
@@ -303,6 +303,40 @@
         });
     }
 
+    // Fuzzy subsequence match: every character of the query must appear in
+    // order somewhere in the target, but not necessarily adjacent. Returns
+    // null when the query isn't a subsequence, otherwise a score where
+    // higher means a tighter, more front-loaded match (consecutive runs
+    // and word-boundary starts are rewarded, gaps are penalized).
+    function fuzzyScore(query, target) {
+        if (query === "") return 0;
+        var qi = 0;
+        var score = 0;
+        var consecutive = 0;
+        var lastIndex = -1;
+        for (var ti = 0; ti < target.length && qi < query.length; ti++) {
+            if (target[ti] !== query[qi]) continue;
+            if (lastIndex === -1) {
+                score += 10;
+            } else {
+                var gap = ti - lastIndex - 1;
+                score += 10 - gap;
+            }
+            if (lastIndex === ti - 1) {
+                consecutive++;
+                score += consecutive * 5;
+            } else {
+                consecutive = 0;
+            }
+            if (ti === 0 || /[\s\-_/]/.test(target[ti - 1])) {
+                score += 10;
+            }
+            lastIndex = ti;
+            qi++;
+        }
+        return qi === query.length ? score : null;
+    }
+
     // Everything below is interactive behavior that only needs the DOM
     // built above -- sidebar search/filter, hash-routing, and the
     // tester's run button, which just calls /r/ directly like the sandbox
@@ -311,19 +345,48 @@
         var search = document.getElementById("search");
         var sidebar = document.getElementById("sidebar");
         var links = Array.prototype.slice.call(sidebar.querySelectorAll("a"));
+        var groupOrder = new Map();
+        Array.prototype.slice
+            .call(sidebar.querySelectorAll("ul"))
+            .forEach(function (ul) {
+                groupOrder.set(
+                    ul,
+                    Array.prototype.slice.call(ul.children),
+                );
+            });
 
         search.addEventListener("input", function () {
             var q = search.value.trim().toLowerCase();
+
             links.forEach(function (a) {
                 var li = a.parentElement;
-                var haystack = (
-                    a.dataset.name +
-                    " " +
-                    a.dataset.desc
-                ).toLowerCase();
-                var match = q === "" || haystack.indexOf(q) !== -1;
-                li.classList.toggle("hidden", !match);
+                var nameScore = fuzzyScore(q, a.dataset.name.toLowerCase());
+                var descScore = fuzzyScore(q, a.dataset.desc.toLowerCase());
+                var score =
+                    nameScore !== null
+                        ? nameScore * 2
+                        : descScore !== null
+                          ? descScore
+                          : null;
+                li.dataset.score = score === null ? "" : String(score);
+                li.classList.toggle("hidden", score === null);
             });
+
+            groupOrder.forEach(function (originalLis, ul) {
+                if (q === "") {
+                    originalLis.forEach(function (li) {
+                        ul.appendChild(li);
+                    });
+                    return;
+                }
+                var sorted = originalLis.slice().sort(function (a, b) {
+                    return Number(b.dataset.score) - Number(a.dataset.score);
+                });
+                sorted.forEach(function (li) {
+                    ul.appendChild(li);
+                });
+            });
+
             Array.prototype.slice
                 .call(sidebar.querySelectorAll("details"))
                 .forEach(function (d) {

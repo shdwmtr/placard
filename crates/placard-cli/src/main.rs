@@ -5,7 +5,7 @@ use std::env;
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use placard_font::{Font, FontFamily, FontSet, FontStyle, FontWeight};
 use placard_render::{CachingFetcher, Diagnostic, ImageFormat, Severity};
@@ -35,7 +35,10 @@ struct Args {
     antialiasing: bool,
     font: Option<PathBuf>,
     format: Option<ImageFormat>,
+    bench: Option<usize>,
 }
+
+const DEFAULT_BENCH_ITERATIONS: usize = 20;
 
 fn print_usage() {
     eprintln!(
@@ -64,6 +67,13 @@ fn print_usage() {
     eprintln!(
         "       --no-anti-aliasing disables edge/glyph antialiasing, producing hard-thresholded pixels"
     );
+    eprintln!(
+        "       --bench [N] renders the input N times (default 20) and prints a per-stage timing"
+    );
+    eprintln!(
+        "          breakdown (html parse, connectors, css parse, style compute, measure width,"
+    );
+    eprintln!("          layout build, paint, encode) instead of a single-shot render");
 }
 
 fn parse_args() -> Result<Args, String> {
@@ -75,12 +85,23 @@ fn parse_args() -> Result<Args, String> {
     let mut antialiasing = true;
     let mut font = None;
     let mut format = None;
+    let mut bench = None;
 
-    let mut it = env::args().skip(1);
+    let mut it = env::args().skip(1).peekable();
     while let Some(arg) = it.next() {
         match arg.as_str() {
             "-o" | "--output" => {
                 output = Some(PathBuf::from(it.next().ok_or("missing value for -o")?))
+            }
+            "--bench" => {
+                let count = match it.peek().and_then(|v| v.parse::<usize>().ok()) {
+                    Some(n) => {
+                        it.next();
+                        n
+                    }
+                    None => DEFAULT_BENCH_ITERATIONS,
+                };
+                bench = Some(count);
             }
             "--width" => {
                 let v = it.next().ok_or("missing value for --width")?;
@@ -127,6 +148,7 @@ fn parse_args() -> Result<Args, String> {
         antialiasing,
         font,
         format,
+        bench,
     })
 }
 
@@ -252,7 +274,107 @@ fn read_html(path: &Path) -> Result<String, String> {
     }
 }
 
+fn fmt_duration(d: Duration) -> String {
+    let micros = d.as_nanos() as f64 / 1000.0;
+    if micros < 1000.0 {
+        format!("{micros:.1}us")
+    } else {
+        format!("{:.2}ms", micros / 1000.0)
+    }
+}
+
+fn duration_stats(samples: &[Duration]) -> (Duration, Duration, Duration) {
+    let sum: Duration = samples.iter().sum();
+    let mean = sum / samples.len() as u32;
+    let min = *samples.iter().min().unwrap();
+    let max = *samples.iter().max().unwrap();
+    (mean, min, max)
+}
+
+fn print_bench_row(label: &str, samples: &[Duration]) {
+    let (mean, min, max) = duration_stats(samples);
+    eprintln!(
+        "{label:<16}{:>12}{:>12}{:>12}",
+        fmt_duration(mean),
+        fmt_duration(min),
+        fmt_duration(max)
+    );
+}
+
+fn run_bench(args: Args, iterations: usize) -> Result<(), String> {
+    let font_start = Instant::now();
+    let fonts = load_font_set(args.font.as_deref())?;
+    let font_load = font_start.elapsed();
+
+    let html = read_html(&args.input)?;
+    let fetcher = make_fetcher();
+    let format = args
+        .format
+        .unwrap_or_else(|| placard_render::format_for_path(&args.output));
+
+    let mut stage_samples = Vec::with_capacity(iterations);
+    let mut wall_samples = Vec::with_capacity(iterations);
+    let mut encode_samples = Vec::with_capacity(iterations);
+    let mut last_output = None;
+
+    for _ in 0..iterations {
+        let wall_start = Instant::now();
+        let output = placard_render::render_to_canvas(
+            &html,
+            args.width,
+            args.min_width,
+            args.max_width,
+            args.antialiasing,
+            &fonts,
+            Some(&fetcher),
+            None,
+        )?;
+        wall_samples.push(wall_start.elapsed());
+
+        let encode_start = Instant::now();
+        let bytes = format.encode(&output.canvas)?;
+        encode_samples.push(encode_start.elapsed());
+
+        stage_samples.push(output.timings);
+        last_output = Some((output.canvas, output.diagnostics, bytes));
+    }
+
+    let (canvas, diagnostics, bytes) = last_output.expect("iterations is at least 1");
+    print_diagnostics(&diagnostics);
+
+    eprintln!("benchmark: {iterations} iterations, {}x{}", canvas.width(), canvas.height());
+    eprintln!("{:<16}{:>12}{:>12}{:>12}", "stage", "mean", "min", "max");
+    print_bench_row("font load", &[font_load]);
+
+    let stage_count = stage_samples[0].stages().len();
+    for i in 0..stage_count {
+        let name = stage_samples[0].stages()[i].0;
+        let samples: Vec<Duration> = stage_samples.iter().map(|t| t.stages()[i].1).collect();
+        print_bench_row(name, &samples);
+    }
+
+    let totals: Vec<Duration> = stage_samples.iter().map(|t| t.total()).collect();
+    print_bench_row("total", &totals);
+    print_bench_row("wall (render)", &wall_samples);
+    print_bench_row(&format!("encode ({})", format.extension()), &encode_samples);
+
+    if is_stdio(&args.output) {
+        std::io::stdout()
+            .write_all(&bytes)
+            .map_err(|e| format!("failed to write to stdout: {e}"))?;
+    } else {
+        std::fs::write(&args.output, &bytes)
+            .map_err(|e| format!("failed to write {}: {e}", args.output.display()))?;
+        println!("wrote {} ({}x{})", args.output.display(), canvas.width(), canvas.height());
+    }
+    Ok(())
+}
+
 fn run_render(args: Args) -> Result<(), String> {
+    if let Some(iterations) = args.bench {
+        return run_bench(args, iterations.max(1));
+    }
+
     let html = read_html(&args.input)?;
 
     let fonts = load_font_set(args.font.as_deref())?;

@@ -1,9 +1,6 @@
 (function() {
     "use strict";
 
-    var editorLayout = document.querySelector(".editor-layout");
-    var codePane = document.querySelector(".code-pane");
-    var editorDivider = document.getElementById("editor-divider");
     var previewImg = document.getElementById("preview-img");
     var previewStatus = document.getElementById("preview-status");
     var previewViewport = document.getElementById("preview-viewport");
@@ -18,6 +15,7 @@
     var resizePreview = document.getElementById("resize-preview");
     var formatSelect = document.getElementById("format");
     var copyBtn = document.getElementById("copy-url");
+    var maximizeToggle = document.getElementById("maximize-toggle");
     var browserFrame = document.getElementById("browser-frame");
     var browserWidthReadout = document.getElementById("browser-width-readout");
     var browserPane = document.getElementById("browser-pane");
@@ -27,6 +25,80 @@
     var consoleBody = document.getElementById("console-body");
     var consoleIcon = document.getElementById("console-icon");
     var consoleSummary = document.getElementById("console-summary");
+    var sandboxWindow = document.getElementById("sandbox-window");
+    var tabPanelsEl = document.querySelector(".tab-panels");
+    var tabPanelsDivider = document.getElementById("tab-panels-divider");
+    var editorPanel = document.querySelector('.tab-panel[data-panel="editor"]');
+    var previewPanel = document.querySelector('.tab-panel[data-panel="preview"]');
+    var tabButtons = Array.prototype.slice.call(
+        document.querySelectorAll(".window-tab-btn"),
+    );
+    var tabPanels = Array.prototype.slice.call(
+        document.querySelectorAll(".tab-panel"),
+    );
+    var layoutButtons = Array.prototype.slice.call(
+        document.querySelectorAll(".layout-btn"),
+    );
+
+    function isPreviewVisible() {
+        return (
+            previewPanel.classList.contains("active") ||
+            sandboxWindow.dataset.layout === "split"
+        );
+    }
+
+    function activateTab(tab) {
+        tabButtons.forEach(function(btn) {
+            btn.classList.toggle("active", btn.dataset.tab === tab);
+        });
+        tabPanels.forEach(function(panel) {
+            panel.classList.toggle("active", panel.dataset.panel === tab);
+        });
+        sandboxWindow.dataset.activeTab = tab;
+        if (tab === "preview") {
+            hasFitOnce = true;
+            fitToViewport();
+        }
+    }
+
+    tabButtons.forEach(function(btn) {
+        btn.addEventListener("click", function() {
+            activateTab(btn.dataset.tab);
+        });
+    });
+
+    var LAYOUT_STORAGE_KEY = "placard-editor-layout";
+
+    function setLayout(layout) {
+        sandboxWindow.dataset.layout = layout;
+        layoutButtons.forEach(function(btn) {
+            btn.classList.toggle("active", btn.dataset.layout === layout);
+        });
+        try {
+            localStorage.setItem(LAYOUT_STORAGE_KEY, layout);
+        } catch (e) { }
+        if (isPreviewVisible()) {
+            hasFitOnce = true;
+            fitToViewport();
+        }
+    }
+
+    layoutButtons.forEach(function(btn) {
+        btn.addEventListener("click", function() {
+            setLayout(btn.dataset.layout);
+        });
+    });
+
+    var storedLayout = null;
+    try {
+        storedLayout = localStorage.getItem(LAYOUT_STORAGE_KEY);
+    } catch (e) { }
+    if (storedLayout === "split" || storedLayout === "tabs") {
+        sandboxWindow.dataset.layout = storedLayout;
+        layoutButtons.forEach(function(btn) {
+            btn.classList.toggle("active", btn.dataset.layout === storedLayout);
+        });
+    }
 
     var STORAGE_KEY = "placard-editor-source";
     var DEFAULT_SOURCE = [
@@ -127,7 +199,7 @@
     function updatePreview() {
         if (!editor) return;
         var myToken = ++previewToken;
-        var url = renderUrl(true);
+        var url = renderUrl();
         previewStatus.textContent = "Rendering...";
         previewStatus.classList.remove("error");
 
@@ -235,7 +307,7 @@
             lastResolvedWidth = previewImg.naturalWidth;
             if (autoWidthToggle.checked) updateBrowserFrame();
         }
-        if (!hasFitOnce) {
+        if (!hasFitOnce && isPreviewVisible()) {
             hasFitOnce = true;
             fitToViewport();
         }
@@ -293,6 +365,32 @@
 
     previewViewport.addEventListener("dblclick", fitToViewport);
     zoomResetBtn.addEventListener("click", fitToViewport);
+
+    function setMaximized(on) {
+        sandboxWindow.classList.toggle("maximized", on);
+        document.body.classList.toggle("sandbox-lock-scroll", on);
+        maximizeToggle.title = on ? "Restore" : "Maximize";
+        maximizeToggle.setAttribute(
+            "aria-label",
+            on ? "Restore editor" : "Maximize editor",
+        );
+        if (isPreviewVisible()) {
+            fitToViewport();
+        }
+    }
+
+    maximizeToggle.addEventListener("click", function() {
+        setMaximized(!sandboxWindow.classList.contains("maximized"));
+    });
+
+    window.addEventListener("keydown", function(e) {
+        if (
+            e.key === "Escape" &&
+            sandboxWindow.classList.contains("maximized")
+        ) {
+            setMaximized(false);
+        }
+    });
 
     var MIN_RESIZE_WIDTH = 1;
     var MAX_RESIZE_WIDTH = 2000;
@@ -365,40 +463,46 @@
 
     setAutoWidth(autoWidthToggle.checked);
 
-    var MIN_CODE_PANE_WIDTH = 240;
-    var MIN_PREVIEW_PANE_WIDTH = 240;
-    var isDraggingDivider = false;
-    var dividerStartX = 0;
-    var codePaneStartWidth = 0;
+    var MIN_SPLIT_RATIO = 0.15;
+    var MAX_SPLIT_RATIO = 0.85;
+    var isPanelDragging = false;
 
-    editorDivider.addEventListener("mousedown", function(e) {
+    function applySplitRatio(ratio) {
+        editorPanel.style.flexBasis = ratio * 100 + "%";
+        previewPanel.style.flexBasis = (1 - ratio) * 100 + "%";
+        if (isPreviewVisible()) fitToViewport();
+    }
+
+    tabPanelsDivider.addEventListener("mousedown", function(e) {
         if (e.button !== 0) return;
         e.preventDefault();
-        isDraggingDivider = true;
-        dividerStartX = e.clientX;
-        codePaneStartWidth = codePane.getBoundingClientRect().width;
-        editorDivider.classList.add("dragging");
-        document.body.style.cursor = "ew-resize";
+        isPanelDragging = true;
+        tabPanelsDivider.classList.add("dragging");
+        document.body.style.cursor = "col-resize";
     });
 
     window.addEventListener("mousemove", function(e) {
-        if (!isDraggingDivider) return;
-        var layoutWidth = editorLayout.getBoundingClientRect().width;
-        var maxCodeWidth =
-            layoutWidth - MIN_PREVIEW_PANE_WIDTH - editorDivider.offsetWidth;
-        var newWidth = clamp(
-            codePaneStartWidth + (e.clientX - dividerStartX),
-            MIN_CODE_PANE_WIDTH,
-            Math.max(MIN_CODE_PANE_WIDTH, maxCodeWidth),
+        if (!isPanelDragging) return;
+        var rect = tabPanelsEl.getBoundingClientRect();
+        var ratio = clamp(
+            (e.clientX - rect.left) / rect.width,
+            MIN_SPLIT_RATIO,
+            MAX_SPLIT_RATIO,
         );
-        codePane.style.flex = "0 0 " + newWidth + "px";
+        applySplitRatio(ratio);
     });
 
     window.addEventListener("mouseup", function() {
-        if (!isDraggingDivider) return;
-        isDraggingDivider = false;
-        editorDivider.classList.remove("dragging");
+        if (!isPanelDragging) return;
+        isPanelDragging = false;
+        tabPanelsDivider.classList.remove("dragging");
         document.body.style.cursor = "";
+    });
+
+    tabPanelsDivider.addEventListener("dblclick", function() {
+        editorPanel.style.flexBasis = "";
+        previewPanel.style.flexBasis = "";
+        if (isPreviewVisible()) fitToViewport();
     });
 
     var debounceTimer = null;

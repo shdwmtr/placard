@@ -19,7 +19,7 @@ strong {
 .nav-left {
     display: flex;
     align-items: center;
-    gap: 28px;
+    gap: 22px;
     min-width: 0;
 }
 .nav-links {
@@ -172,10 +172,29 @@ section {
 }
 
 #what-is-placard,
+#sandbox,
 #connectors-showcase,
 #get-started {
     padding-top: 6rem;
     padding-bottom: 6rem;
+}
+
+.sandbox-showcase-head {
+    max-width: 640px;
+    margin: 0 0 32px 0;
+}
+.sandbox-showcase-head h2 {
+    font-size: 34px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    color: var(--text);
+    margin: 0 0 14px 0;
+}
+.sandbox-showcase-head p {
+    color: var(--text-tertiary);
+    font-size: 15px;
+    margin: 0;
 }
 
 .get-started-grid {

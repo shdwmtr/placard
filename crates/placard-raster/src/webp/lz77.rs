@@ -1,8 +1,38 @@
 use std::collections::HashMap;
+use std::hash::{BuildHasherDefault, Hasher};
 
 const MIN_MATCH: usize = 3;
 const MAX_MATCH: usize = 4096;
 const MAX_CHAIN: usize = 32;
+
+#[derive(Default)]
+struct FxHasher(u64);
+
+const FX_SEED: u64 = 0x51_7c_c1_b7_27_22_0a_95;
+
+impl Hasher for FxHasher {
+    fn finish(&self) -> u64 {
+        self.0
+    }
+
+    fn write(&mut self, bytes: &[u8]) {
+        for chunk in bytes.chunks(8) {
+            let mut buf = [0u8; 8];
+            buf[..chunk.len()].copy_from_slice(chunk);
+            self.write_u64(u64::from_ne_bytes(buf));
+        }
+    }
+
+    fn write_u32(&mut self, i: u32) {
+        self.write_u64(i as u64);
+    }
+
+    fn write_u64(&mut self, i: u64) {
+        self.0 = (self.0.rotate_left(5) ^ i).wrapping_mul(FX_SEED);
+    }
+}
+
+type FastMap<K, V> = HashMap<K, V, BuildHasherDefault<FxHasher>>;
 
 /// VP8L's backward-reference distance is transmitted as
 /// `flat_pixel_distance + 120` (see `mod.rs` for why this project always
@@ -23,7 +53,7 @@ pub(crate) enum Token {
 /// dominant case for this renderer's output: long runs of flat color.
 pub(crate) fn find_tokens(pixels: &[u32]) -> Vec<Token> {
     let n = pixels.len();
-    let mut last: HashMap<u32, usize> = HashMap::new();
+    let mut last: FastMap<u32, usize> = FastMap::default();
     let mut prev: Vec<i64> = vec![-1; n];
     let mut tokens = Vec::new();
 
@@ -60,11 +90,23 @@ pub(crate) fn find_tokens(pixels: &[u32]) -> Vec<Token> {
                 length: best_len as u32,
                 distance: best_dist as u32,
             });
-            for k in 0..best_len {
-                let pos = i + k;
+            if best_dist == 1 {
+                // A distance-1 match copies the immediately preceding pixel
+                // repeatedly, so (by induction) every pixel it covers is
+                // the same value -- the match's last position is always
+                // the closest, and thus best, future backreference
+                // candidate for that value. No need to index the rest.
+                let pos = i + best_len - 1;
                 let v = pixels[pos];
                 prev[pos] = last.get(&v).map(|&p| p as i64).unwrap_or(-1);
                 last.insert(v, pos);
+            } else {
+                for k in 0..best_len {
+                    let pos = i + k;
+                    let v = pixels[pos];
+                    prev[pos] = last.get(&v).map(|&p| p as i64).unwrap_or(-1);
+                    last.insert(v, pos);
+                }
             }
             i += best_len;
         } else {
@@ -131,6 +173,30 @@ mod tests {
             })
             .sum();
         assert_eq!(total, pixels.len());
+    }
+
+    #[test]
+    fn later_match_chains_past_a_flat_runs_unindexed_interior() {
+        // The flat run of `9`s only indexes its own last position; a later
+        // occurrence of `9` must still chain correctly (and land on that
+        // closest position, not something stale) rather than losing the
+        // backreference entirely.
+        let pixels = vec![9u32, 9, 9, 9, 9, 1, 2, 3, 9, 9, 9];
+        let tokens = find_tokens(&pixels);
+
+        let mut out = Vec::with_capacity(pixels.len());
+        for t in &tokens {
+            match *t {
+                Token::Literal(v) => out.push(v),
+                Token::Match { length, distance } => {
+                    for _ in 0..length {
+                        let src = out.len() - distance as usize;
+                        out.push(out[src]);
+                    }
+                }
+            }
+        }
+        assert_eq!(out, pixels);
     }
 
     #[test]

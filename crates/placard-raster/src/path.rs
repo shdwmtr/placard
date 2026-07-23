@@ -237,16 +237,23 @@ fn add_row_segment(
         return;
     }
 
-    let mut breakpoints = vec![0.0f32, 1.0f32];
+    // At most 0.0, 1.0, and the two canvas-edge clip breakpoints -- a fixed
+    // stack array avoids a heap allocation on every scanline segment (this
+    // runs per edge per row, so for text-heavy renders that's thousands of
+    // tiny allocations otherwise).
+    let mut breakpoints = [0.0f32, 1.0, 0.0, 0.0];
+    let mut count = 2usize;
     if xb != xa {
         let t0 = (0.0 - xa) / (xb - xa);
         let t1 = (canvas_width - xa) / (xb - xa);
         for t in [t0, t1] {
             if t > 0.0 && t < 1.0 {
-                breakpoints.push(t);
+                breakpoints[count] = t;
+                count += 1;
             }
         }
     }
+    let breakpoints = &mut breakpoints[..count];
     breakpoints.sort_by(|a, b| a.partial_cmp(b).unwrap());
 
     for w in breakpoints.windows(2) {

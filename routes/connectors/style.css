@@ -406,3 +406,45 @@ pre {
     background: #262626;
     border-color: #262626;
 }
+
+.s-name {
+    text-transform: capitalize;
+}
+
+/* Top nav */
+.nav-left {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    min-width: 0;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+}
+
+.nav-links a {
+    color: var(--text-secondary);
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.nav-links a:hover {
+    color: var(--text);
+    text-decoration: none;
+}
+
+.nav-links a .ext {
+    margin-left: 2px;
+    font-size: 11px;
+    color: var(--text-tertiary);
+}
+
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 0 0 auto;
+}
